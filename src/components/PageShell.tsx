@@ -15,8 +15,8 @@ export function PageShell({ title, subtitle, children }: PageShellProps) {
         {title && (
           <section className="bg-gradient-to-br from-primary-600 to-primary-900 text-white py-12 lg:py-16">
             <div className="container mx-auto px-4">
-              <h1 className="font-display text-3xl lg:text-4xl font-bold">{title}</h1>
-              {subtitle && <p className="mt-3 max-w-2xl text-primary-100">{subtitle}</p>}
+              <h1 className="hero-in font-display text-3xl lg:text-4xl font-bold">{title}</h1>
+              {subtitle && <p style={{ '--hero-delay': '150ms' } as React.CSSProperties} className="hero-in mt-3 max-w-2xl text-primary-100">{subtitle}</p>}
             </div>
           </section>
         )}

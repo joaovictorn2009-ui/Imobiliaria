@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Menu, X, Search, Phone, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -19,6 +19,14 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,9 +36,15 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200">
+    <>
+    <header
+      className={cn(
+        'sticky top-0 z-50 w-full border-b bg-white/90 backdrop-blur-md transition-all duration-300',
+        scrolled ? 'border-gray-200 shadow-md shadow-gray-900/5' : 'border-transparent'
+      )}
+    >
       <nav className="container mx-auto px-4" aria-label="Navegação principal">
-        <div className="flex h-16 items-center justify-between">
+        <div className={cn('flex items-center justify-between transition-all duration-300', scrolled ? 'h-14' : 'h-16')}>
           <Link
             href="/"
             className="flex items-center gap-2 text-xl font-display font-bold text-primary-700 hover:opacity-80 transition-opacity"
@@ -104,10 +118,11 @@ export function Header() {
           </div>
         )}
       </nav>
+    </header>
 
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-black/50 md:hidden transition-opacity',
+          'fixed inset-0 z-[70] bg-black/50 md:hidden transition-opacity',
           mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
         onClick={() => setMobileMenuOpen(false)}
@@ -116,7 +131,7 @@ export function Header() {
 
       <aside
         className={cn(
-          'fixed right-0 top-0 z-50 w-full max-w-sm h-full bg-white shadow-xl transform transition-transform duration-300 ease-in-out md:hidden',
+          'fixed right-0 top-0 z-[80] w-full max-w-sm h-full bg-white shadow-xl transform transition-transform duration-300 ease-in-out md:hidden',
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         )}
         aria-label="Menu mobile"
@@ -160,6 +175,6 @@ export function Header() {
           </div>
         </div>
       </aside>
-    </header>
+    </>
   )
 }

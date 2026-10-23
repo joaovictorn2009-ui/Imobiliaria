@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { PropertyCard } from '@/components/PropertyCard'
+import { Reveal } from '@/components/Reveal'
 import { PropertyFilter } from '@/components/PropertyFilter'
 import { Button } from '@/components/ui/button'
 import { mockProperties } from '@/data/mockProperties'
@@ -73,8 +74,10 @@ export function PropertyExplorer({ initialFilters, pageSize = 6 }: PropertyExplo
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {shown.map((property) => (
-              <PropertyCard key={property.id} property={property} />
+            {shown.map((property, i) => (
+              <Reveal key={property.id} delay={(i % 3) * 120}>
+                <PropertyCard property={property} />
+              </Reveal>
             ))}
           </div>
         )}

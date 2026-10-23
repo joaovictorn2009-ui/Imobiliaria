@@ -42,9 +42,13 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
       },
       keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translate3d(0,0,0) scale(1)' },
+          '50%': { transform: 'translate3d(30px,-40px,0) scale(1.1)' },
+        },
         'slide-down': {
           '0%': { opacity: '0', transform: 'translateY(-8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
@@ -52,6 +56,8 @@ const config: Config = {
       },
       animation: {
         'slide-down': 'slide-down 0.2s ease-out',
+        'float': 'float 9s ease-in-out infinite',
+        'float-slow': 'float 14s ease-in-out infinite reverse',
       },
       container: {
         center: true,
