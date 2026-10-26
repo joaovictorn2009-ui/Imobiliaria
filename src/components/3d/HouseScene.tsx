@@ -88,6 +88,8 @@ const FLOOR_KIND: Record<string, keyof TextureSet> = {
   corridor: 'woodDark',
   wc: 'tileLight',
   bath: 'tileLight',
+  closet: 'wood',
+  masterbath: 'tileLight',
   balcony: 'stone',
 }
 
@@ -293,7 +295,7 @@ function Level({
   const floorGeos = useMemo(
     () =>
       rooms.map((r) =>
-        tbox(r.w - 0.02, 0.04, r.d - 0.02, r.id === 'kitchen' || r.id === 'wc' || r.id === 'bath' ? 1.6 : 2.4)
+        tbox(r.w - 0.02, 0.04, r.d - 0.02, r.id === 'kitchen' || r.id === 'wc' || r.id === 'bath' || r.id === 'masterbath' ? 1.6 : 2.4)
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -582,7 +584,7 @@ export interface HouseSceneProps {
 export function HouseScene({ mode, planFloor, selected, onSelect, zoomOn, autoRotate, onPerf }: HouseSceneProps) {
   const assets = useAssets()
   const lifts = liftTargets(mode, planFloor)
-  const showLabels = mode !== 'facade'
+  const labelsFor = (level: LevelId) => mode === 'explode' || (mode === 'plan' && planFloor === level)
 
   return (
     <>
@@ -626,10 +628,10 @@ export function HouseScene({ mode, planFloor, selected, onSelect, zoomOn, autoRo
       <group position={[-HOUSE_W / 2, 0, -HOUSE_D / 2]}>
         <Garden assets={assets} />
         <Lift base={0} target={lifts.ground}>
-          <Level level="ground" assets={assets} showLabels={showLabels} selected={selected} onSelect={onSelect} />
+          <Level level="ground" assets={assets} showLabels={labelsFor('ground')} selected={selected} onSelect={onSelect} />
         </Lift>
         <Lift base={FLOOR_H} target={lifts.upper}>
-          <Level level="upper" assets={assets} showLabels={showLabels} selected={selected} onSelect={onSelect} />
+          <Level level="upper" assets={assets} showLabels={labelsFor('upper')} selected={selected} onSelect={onSelect} />
         </Lift>
         <Lift base={FLOOR_H * 2} target={lifts.roof}>
           <Roof mats={assets.mats} />

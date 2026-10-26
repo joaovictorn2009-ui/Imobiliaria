@@ -185,7 +185,7 @@ export const mockProperties: Property[] = [
     images: [
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80',
       'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
-      'https://images.unsplash.com/photo-1560448075-8c30a0b1d5b5?w=800&q=80',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
     ],
     mainImage: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80',
     createdAt: new Date('2024-02-15'),
@@ -223,11 +223,11 @@ export const mockProperties: Property[] = [
     },
     features: ['pool', 'balcony', 'air_conditioning', 'parking', 'security', 'gym', 'sauna', 'spa', 'elevator', 'concierge', 'laundry', 'storage', 'garden'],
     images: [
-      'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&q=80',
-      'https://images.unsplash.com/photo-1600585154526-990dced43a0b?w=800&q=80',
+      'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&q=80',
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80',
       'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80',
     ],
-    mainImage: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&q=80',
+    mainImage: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&q=80',
     createdAt: new Date('2024-02-20'),
     updatedAt: new Date('2024-02-20'),
     featured: true,

@@ -27,7 +27,9 @@ export const ROOMS: RoomDef[] = [
   { id: 'hall', name: 'Hall e escada', level: 'ground', x: 7, z: 4, w: 3, d: 4, floor: '#c9c2b6', desc: 'Entrada social com escada em madeira para o pavimento superior.' },
   { id: 'wc', name: 'Lavabo', level: 'ground', x: 10, z: 4, w: 2, d: 4, floor: '#cfd8dc', desc: 'Lavabo de apoio para visitas, com ventilação natural.' },
   { id: 'balcony', name: 'Varanda', level: 'upper', x: 0, z: -2, w: 5, d: 2, floor: '#a8a29a', desc: 'Varanda da suíte com guarda-corpo de vidro e vista para a piscina.' },
-  { id: 'master', name: 'Suíte master', level: 'upper', x: 0, z: 0, w: 5, d: 8, floor: '#b98b5e', desc: 'Suíte ampla com acesso à varanda e espaço para closet.' },
+  { id: 'master', name: 'Suíte master', level: 'upper', x: 0, z: 0, w: 5, d: 5, floor: '#b98b5e', desc: 'Suíte ampla com acesso à varanda, closet e banheiro privativo.' },
+  { id: 'closet', name: 'Closet da suíte', level: 'upper', x: 0, z: 5, w: 2.5, d: 3, floor: '#b98b5e', desc: 'Closet com armários planejados do chão ao teto.' },
+  { id: 'masterbath', name: 'Banheiro da suíte', level: 'upper', x: 2.5, z: 5, w: 2.5, d: 3, floor: '#cfd8dc', desc: 'Banheiro com box de vidro, bancada dupla e janela alta.' },
   { id: 'corridor', name: 'Circulação', level: 'upper', x: 5, z: 0, w: 2, d: 8, floor: '#c9c2b6', desc: 'Corredor com iluminação natural, ligando os quartos.' },
   { id: 'bed2', name: 'Quarto 2', level: 'upper', x: 7, z: 0, w: 5, d: 4, floor: '#b98b5e', desc: 'Quarto com janela para o jardim e armários planejados.' },
   { id: 'bed3', name: 'Quarto 3', level: 'upper', x: 7, z: 4, w: 3, d: 4, floor: '#b98b5e', desc: 'Quarto com banheiro privativo ao lado.' },
@@ -73,11 +75,13 @@ export const WALLS: WallDef[] = [
   { level: 'ground', x1: 10, z1: 4, x2: 10, z2: 8, openings: [door(2, 0.9)] },
   // Pavimento superior, paredes externas
   { level: 'upper', x1: 0, z1: 0, x2: 12, z2: 0, exterior: true, openings: [slide(2.5, 3), g(9.5, 2.4)] },
-  { level: 'upper', x1: 0, z1: 8, x2: 12, z2: 8, exterior: true, tone: 'timber', openings: [g(2.5, 2), g(6, 0.8), g(8.5, 1.6), g(11, 1)] },
-  { level: 'upper', x1: 0, z1: 0, x2: 0, z2: 8, exterior: true, openings: [g(4, 2)] },
+  { level: 'upper', x1: 0, z1: 8, x2: 12, z2: 8, exterior: true, tone: 'timber', openings: [g(1.25, 0.8, 1.6, 2.3), g(3.75, 0.8, 1.6, 2.3), g(6, 0.8), g(8.5, 1.6), g(11, 1)] },
+  { level: 'upper', x1: 0, z1: 0, x2: 0, z2: 8, exterior: true, openings: [g(2.5, 2.4)] },
   { level: 'upper', x1: 12, z1: 0, x2: 12, z2: 8, exterior: true, openings: [g(2, 2), g(6, 1.4, 1.3, 2.3)] },
   // Pavimento superior, paredes internas
-  { level: 'upper', x1: 5, z1: 0, x2: 5, z2: 8, openings: [door(6)] },
+  { level: 'upper', x1: 5, z1: 0, x2: 5, z2: 8, openings: [door(2.5)] },
+  { level: 'upper', x1: 0, z1: 5, x2: 5, z2: 5, openings: [door(0.6, 0.8), door(4.4, 0.8)] },
+  { level: 'upper', x1: 2.5, z1: 5, x2: 2.5, z2: 8 },
   { level: 'upper', x1: 7, z1: 0, x2: 7, z2: 8, openings: [door(2), door(6)] },
   { level: 'upper', x1: 7, z1: 4, x2: 12, z2: 4 },
   { level: 'upper', x1: 10, z1: 4, x2: 10, z2: 8, openings: [door(2, 0.9)] },
@@ -112,12 +116,19 @@ export const FURNITURE: FurnitureDef[] = [
   // Lavabo
   { level: 'ground', x: 11.3, z: 7.4, w: 0.5, d: 0.7, h: 0.4, color: '#f4f4f4' },
   { level: 'ground', x: 10.5, z: 5.2, w: 0.5, d: 0.9, h: 0.85, color: '#f4f4f4' },
-  // Suíte
-  { level: 'upper', x: 2.5, z: 5.6, w: 2, d: 2.1, h: 0.5, color: '#e8e2d8' },
-  { level: 'upper', x: 2.5, z: 6.7, w: 2.3, d: 0.2, h: 1.1, color: '#6b4a2e' },
-  { level: 'upper', x: 1.1, z: 6.9, w: 0.5, d: 0.5, h: 0.5, color: '#6b4a2e' },
-  { level: 'upper', x: 3.9, z: 6.9, w: 0.5, d: 0.5, h: 0.5, color: '#6b4a2e' },
-  { level: 'upper', x: 0.4, z: 2.2, w: 0.6, d: 2.8, h: 2.1, color: '#8a6a4a' },
+  // Suíte master
+  { level: 'upper', x: 2.5, z: 3.8, w: 2, d: 2.1, h: 0.5, color: '#e8e2d8' },
+  { level: 'upper', x: 2.5, z: 4.85, w: 2.3, d: 0.2, h: 1.1, color: '#6b4a2e' },
+  { level: 'upper', x: 1.25, z: 4.7, w: 0.5, d: 0.5, h: 0.5, color: '#6b4a2e' },
+  { level: 'upper', x: 3.75, z: 4.7, w: 0.5, d: 0.5, h: 0.5, color: '#6b4a2e' },
+  { level: 'upper', x: 4.6, z: 0.6, w: 0.6, d: 1.2, h: 0.9, color: '#8a6a4a' },
+  // Closet
+  { level: 'upper', x: 0.35, z: 6.6, w: 0.55, d: 2.2, h: 2.1, color: '#8a6a4a' },
+  { level: 'upper', x: 1.5, z: 7.7, w: 1.6, d: 0.5, h: 2.1, color: '#8a6a4a' },
+  // Banheiro da suíte
+  { level: 'upper', x: 4.65, z: 7.4, w: 0.5, d: 0.7, h: 0.4, color: '#f4f4f4' },
+  { level: 'upper', x: 3.3, z: 7.75, w: 1.3, d: 0.5, h: 0.9, color: '#e9e5dd' },
+  { level: 'upper', x: 3.1, z: 5.6, w: 0.9, d: 0.9, h: 0.05, color: '#bfd8e6' },
   // Quarto 2
   { level: 'upper', x: 10, z: 2, w: 1.5, d: 2, h: 0.45, color: '#dfe6ee' },
   { level: 'upper', x: 11.6, z: 3.1, w: 0.6, d: 1.6, h: 2.0, color: '#8a6a4a' },
