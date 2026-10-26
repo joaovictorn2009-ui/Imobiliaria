@@ -1,8 +1,9 @@
 'use client'
 
+import { SafeBoundary } from './SafeBoundary'
 import { useRef, useState, useEffect, Suspense } from 'react'
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber'
-import { ScrollControls, Html, PerspectiveCamera, Environment, ContactShadows, Stage } from '@react-three/drei'
+import { ScrollControls, useScroll, Html, PerspectiveCamera, Environment, ContactShadows, Stage } from '@react-three/drei'
 import { Group, Mesh, BoxGeometry, MeshStandardMaterial, Vector3 } from 'three'
 import { defaultHouseConfig, ROOM_TYPE_LABELS, ROOM_TYPE_COLORS, updateExplosion } from './HouseModel'
 import { motion } from 'framer-motion'
@@ -496,6 +497,34 @@ function ScrollInstructions({ progress }: { progress: number }) {
   )
 }
 
+// Lê a rolagem dentro do <ScrollControls> e repassa o progresso (0 a 1) à cena
+function ExplodedScene() {
+  const scroll = useScroll()
+  const [progress, setProgress] = useState(0)
+
+  useFrame(() => {
+    const next = Math.round(scroll.offset * 1000) / 1000
+    setProgress((prev) => (prev === next ? prev : next))
+  })
+
+  return (
+    <>
+      <ExplodedCamera progress={progress} />
+      <Stage environment="city" preset="rembrandt" intensity={1.2}>
+        <ExplodedHouseModel progress={progress} />
+      </Stage>
+      <ContactShadows opacity={0.3} scale={25} blur={2} />
+      <Environment preset="city" background={false} />
+
+      {/* UI Overlays */}
+      <ScrollProgressIndicator progress={progress} />
+      <RoomListPanel progress={progress} />
+      <FixedLegend />
+      <ScrollInstructions progress={progress} />
+    </>
+  )
+}
+
 // Componente principal da vista explodida com scroll
 export function Property3DExplodedView({
   className = '',
@@ -541,26 +570,7 @@ export function Property3DExplodedView({
           infinite={false}
           horizontal={false}
         >
-          {((scrollProps: { progress: number }) => (
-            <>
-              <ExplodedCamera progress={scrollProps.progress} />
-              <Stage
-                environment="city"
-                preset="rembrandt"
-                intensity={1.2}
-              >
-                <ExplodedHouseModel progress={scrollProps.progress} />
-              </Stage>
-              <ContactShadows opacity={0.3} scale={25} blur={2} />
-              <Environment preset="city" background={false} />
-
-              {/* UI Overlays */}
-              <ScrollProgressIndicator progress={scrollProps.progress} />
-              <RoomListPanel progress={scrollProps.progress} />
-              <FixedLegend />
-              <ScrollInstructions progress={scrollProps.progress} />
-            </>
-          )) as unknown as React.ReactNode}
+          <ExplodedScene />
         </ScrollControls>
       </Canvas>
 
@@ -592,7 +602,9 @@ export function Property3DExplodedViewWrapper(props: Parameters<typeof Property3
         </div>
       </div>
     }>
-      <Property3DExplodedView {...props} />
+      <SafeBoundary>
+        <Property3DExplodedView {...props} />
+      </SafeBoundary>
     </Suspense>
   )
 }

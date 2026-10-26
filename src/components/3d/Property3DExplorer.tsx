@@ -1,5 +1,6 @@
 'use client'
 
+import { SafeBoundary } from './SafeBoundary'
 import { useRef, useState, useEffect, Suspense } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Html, PerspectiveCamera, Environment, ContactShadows, Stage } from '@react-three/drei'
@@ -203,13 +204,8 @@ function RoomInfoPanel({ room }: { room: { name: string; type: string } | null }
   if (!room) return null
 
   return (
-    <Html
-      position={[0, 0, 0]}
+    <div
       style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        zIndex: 100,
         background: 'rgba(15, 23, 42, 0.95)',
         backdropFilter: 'blur(12px)',
         border: '1px solid rgba(148, 163, 184, 0.2)',
@@ -241,7 +237,7 @@ function RoomInfoPanel({ room }: { room: { name: string; type: string } | null }
       <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: 1.5 }}>
         Clique para ver detalhes e fotos deste cômodo
       </p>
-    </Html>
+    </div>
   )
 }
 
@@ -262,10 +258,9 @@ function ExplorerControls({
   onCloseRoomInfo: () => void
 }) {
   return (
-    <Html
-      position={[0, 0, 0]}
+    <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: '20px',
         left: '20px',
         zIndex: 100,
@@ -326,7 +321,7 @@ function ExplorerControls({
       {selectedRoom && (
         <RoomInfoPanel room={selectedRoom} />
       )}
-    </Html>
+    </div>
   )
 }
 
@@ -335,10 +330,9 @@ function RoomLegend() {
   const types = ['living', 'kitchen', 'bedroom', 'bathroom', 'balcony', 'hallway', 'laundry']
 
   return (
-    <Html
-      position={[0, 0, 0]}
+    <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         bottom: '20px',
         left: '20px',
         zIndex: 100,
@@ -369,7 +363,7 @@ function RoomLegend() {
           </span>
         </div>
       ))}
-    </Html>
+    </div>
   )
 }
 
@@ -454,10 +448,9 @@ export function Property3DExplorer({
       <RoomLegend />
 
       {/* Dica de interação */}
-      <Html
-        position={[0, 0, 0]}
+      <div
         style={{
-          position: 'fixed',
+          position: 'absolute',
           top: '20px',
           right: '20px',
           zIndex: 100,
@@ -479,7 +472,7 @@ export function Property3DExplorer({
           <li>✋ Botão direito: Mover câmera</li>
           <li>👆 Clique no cômodo: Ver detalhes</li>
         </ul>
-      </Html>
+      </div>
     </div>
   )
 }
@@ -497,7 +490,9 @@ export function Property3DExplorerWrapper(props: Parameters<typeof Property3DExp
         </div>
       </div>
     }>
-      <Property3DExplorer {...props} />
+      <SafeBoundary>
+        <Property3DExplorer {...props} />
+      </SafeBoundary>
     </Suspense>
   )
 }
