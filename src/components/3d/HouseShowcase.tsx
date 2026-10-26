@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { HouseScene } from './HouseScene'
 import { CAMERA_PRESETS, ROOMS, type LevelId, type Mode } from './houseData'
@@ -68,6 +68,18 @@ export default function HouseShowcase() {
   const [selected, setSelected] = useState<string | null>(null)
   const [zoomOn, setZoomOn] = useState(false)
   const [autoRotate, setAutoRotate] = useState(true)
+  const [dpr, setDpr] = useState(1.5)
+  const [visible, setVisible] = useState(true)
+  const wrap = useRef<HTMLDivElement>(null)
+
+  // pausa a renderização quando o 3D sai da tela (economiza bateria e CPU)
+  useEffect(() => {
+    const el = wrap.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.01 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   const room = ROOMS.find((r) => r.id === selected) ?? null
 
@@ -87,10 +99,11 @@ export default function HouseShowcase() {
   }
 
   return (
-    <div className="relative h-[600px] w-full overflow-hidden rounded-[28px] border border-white/10 bg-[#070c18] shadow-2xl shadow-black/50 sm:h-[680px]">
+    <div ref={wrap} className="relative h-[600px] w-full overflow-hidden rounded-[28px] border border-white/10 bg-[#070c18] shadow-2xl shadow-black/50 sm:h-[680px]">
       <Canvas
-        shadows
-        dpr={[1, 1.75]}
+        shadows="soft"
+        dpr={dpr}
+        frameloop={visible ? 'always' : 'never'}
         camera={{ position: CAMERA_PRESETS.facade.pos, fov: 38 }}
         style={{ touchAction: 'pan-y' }}
         onPointerDown={() => {
@@ -106,6 +119,7 @@ export default function HouseShowcase() {
           onSelect={selectRoom}
           zoomOn={zoomOn}
           autoRotate={autoRotate}
+          onPerf={(level) => setDpr(level === 'low' ? 1 : 1.5)}
         />
       </Canvas>
 
