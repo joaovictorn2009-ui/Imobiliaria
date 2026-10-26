@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer'
 import { Reveal } from '@/components/Reveal'
 import { CountUp } from '@/components/CountUp'
 import { ScrollProgress } from '@/components/ScrollProgress'
-import { Property3DExplorerWrapper } from '@/components/3d'
+import { House3DLazy } from '@/components/3d'
 
 const stats = [
   { end: 15, suffix: '+', label: 'Anos de mercado' },
@@ -188,14 +188,11 @@ export default function HomePage() {
                 Explore seu futuro lar em <span className="italic text-primary-400">3D</span>
               </h2>
               <p className="text-lg text-primary-100/80">
-                Navegue pelo apartamento decorado, clique nos cômodos para ver detalhes e use o modo explosão para entender a planta completa.
+                Gire a casa, veja a planta de cada pavimento e separe os andares para entender cada cômodo.
               </p>
             </div>
             <div className="mx-auto max-w-5xl">
-              <Property3DExplorerWrapper
-                title="Explore em 3D"
-                subtitle="Navegue pelo imóvel, clique nos cômodos para ver detalhes"
-              />
+              <House3DLazy />
             </div>
           </Reveal>
         </section>

@@ -10,7 +10,7 @@ import { mockProperties } from '@/data/mockProperties'
 import { getPropertyById } from '@/lib/properties'
 import { formatCurrency } from '@/lib/utils'
 import { PROPERTY_FEATURE_LABELS, PROPERTY_STATUS_LABELS, PROPERTY_TYPE_LABELS } from '@/types'
-import { Property3DExplodedViewWrapper } from '@/components/3d'
+import { House3DLazy } from '@/components/3d'
 
 export function generateStaticParams() {
   return mockProperties.map((p) => ({ id: p.id }))
@@ -92,23 +92,9 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
               </>
             )}
 
-            {/* Seção de Vista Explodida 3D */}
-            <section className="mt-12" aria-labelledby="3d-exploded-title">
-              <div className="rounded-2xl bg-gray-50 p-6 sm:p-8">
-                <div className="mb-6 text-center">
-                  <h2 id="3d-exploded-title" className="font-display text-2xl sm:text-3xl font-bold text-gray-900">
-                    Vista Explodida 3D
-                  </h2>
-                  <p className="mt-2 text-gray-600">
-                    Role para baixo para ver o imóvel se desmontar e revelar cada cômodo em detalhes
-                  </p>
-                </div>
-                <Property3DExplodedViewWrapper
-                  title="Explore o Imóvel em 3D"
-                  subtitle="Role a página para ver o imóvel se desmontar e revelar cada cômodo"
-                  height="70vh"
-                />
-              </div>
+            <section className="mt-12" aria-labelledby="3d-title">
+              <h2 id="3d-title" className="mb-4 text-xl font-bold text-gray-900">Conheça em 3D</h2>
+              <House3DLazy />
             </section>
           </div>
 
