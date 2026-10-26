@@ -8,6 +8,55 @@ import { CountUp } from '@/components/CountUp'
 import { ScrollProgress } from '@/components/ScrollProgress'
 import { House3DLazy } from '@/components/3d'
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://imobiliariaprime.com.br'
+
+function homeSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: 'Imobiliária Prime',
+        url: BASE_URL,
+        logo: `${BASE_URL}/logo.png`,
+        sameAs: [
+          'https://facebook.com/imobiliariaprime',
+          'https://instagram.com/imobiliariaprime',
+          'https://linkedin.com/company/imobiliariaprime',
+          'https://youtube.com/@imobiliariaprime',
+        ],
+        contactPoint: {
+          '@type': 'ContactPoint',
+          telephone: '+55-11-3000-0000',
+          contactType: 'customer service',
+          availableLanguage: 'Portuguese',
+        },
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Av. Paulista, 1000',
+          addressLocality: 'São Paulo',
+          addressRegion: 'SP',
+          postalCode: '01310-100',
+          addressCountry: 'BR',
+        },
+      },
+      {
+        '@type': 'WebSite',
+        name: 'Imobiliária Prime',
+        url: BASE_URL,
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${BASE_URL}/properties?q={search_term_string}`,
+          },
+          queryInput: 'required name=search_term_string',
+        },
+      },
+    ],
+  }
+}
+
 const stats = [
   { end: 15, suffix: '+', label: 'Anos de mercado' },
   { end: 3000, suffix: '+', label: 'Famílias atendidas' },
@@ -34,8 +83,14 @@ const features = [
 ]
 
 export default function HomePage() {
+  const schema = homeSchema()
+
   return (
     <div className="min-h-screen flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       <ScrollProgress />
       <Header />
       <main className="flex-1">

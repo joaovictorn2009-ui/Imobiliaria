@@ -23,16 +23,22 @@ function Segmented<T extends string>({
   value,
   onChange,
   small = false,
+  controlsId,
+  label,
 }: {
   items: { id: T; label: string }[]
   value: T
   onChange: (v: T) => void
   small?: boolean
+  controlsId?: string
+  label?: string
 }) {
   const index = Math.max(0, items.findIndex((i) => i.id === value))
   return (
     <div
       role="tablist"
+      aria-label={label}
+      aria-controls={controlsId}
       className="relative grid rounded-full border border-white/10 bg-white/[0.06] p-1 backdrop-blur-xl"
       style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
     >
@@ -49,9 +55,22 @@ function Segmented<T extends string>({
           key={it.id}
           role="tab"
           type="button"
+          id={`tab-${it.id}`}
           aria-selected={value === it.id}
+          aria-controls={controlsId}
           onClick={() => onChange(it.id)}
-          className={`relative z-10 rounded-full font-medium tracking-wide transition-colors duration-300 ${
+          onKeyDown={(e) => {
+            // Suporte a navegação por setas
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+              e.preventDefault()
+              const currentIndex = items.findIndex((i) => i.id === value)
+              const nextIndex = e.key === 'ArrowRight'
+                ? (currentIndex + 1) % items.length
+                : (currentIndex - 1 + items.length) % items.length
+              onChange(items[nextIndex].id)
+            }
+          }}
+          className={`relative z-10 rounded-full font-medium tracking-wide transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#070c18] ${
             small ? 'px-4 py-1.5 text-xs' : 'px-5 py-2.5 text-sm sm:px-7'
           } ${value === it.id ? 'text-[#1a1408]' : 'text-white/70 hover:text-white'}`}
         >
@@ -71,6 +90,8 @@ export default function HouseShowcase() {
   const [dpr, setDpr] = useState(1.5)
   const [visible, setVisible] = useState(true)
   const wrap = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasId = 'house-3d-canvas'
 
   // pausa a renderização quando o 3D sai da tela (economiza bateria e CPU)
   useEffect(() => {
@@ -80,6 +101,10 @@ export default function HouseShowcase() {
     io.observe(el)
     return () => io.disconnect()
   }, [])
+
+  // Suporte a prefers-reduced-motion
+  const prefersReducedMotion = typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   const room = ROOMS.find((r) => r.id === selected) ?? null
 
@@ -101,9 +126,11 @@ export default function HouseShowcase() {
   return (
     <div ref={wrap} className="relative h-[600px] w-full overflow-hidden rounded-[28px] border border-white/10 bg-[#070c18] shadow-2xl shadow-black/50 sm:h-[680px]">
       <Canvas
+        ref={canvasRef}
+        id={canvasId}
         shadows="soft"
-        dpr={dpr}
-        frameloop={visible ? 'always' : 'never'}
+        dpr={prefersReducedMotion ? 1 : dpr}
+        frameloop={visible && !prefersReducedMotion ? 'always' : 'never'}
         camera={{ position: CAMERA_PRESETS.facade.pos, fov: 38 }}
         style={{ touchAction: 'pan-y' }}
         onPointerDown={() => {
@@ -111,6 +138,8 @@ export default function HouseShowcase() {
           setAutoRotate(false)
         }}
         onPointerLeave={() => setZoomOn(false)}
+        aria-label="Visualização 3D interativa da Residência Prime"
+        role="img"
       >
         <HouseScene
           mode={mode}
@@ -118,7 +147,7 @@ export default function HouseShowcase() {
           selected={selected}
           onSelect={selectRoom}
           zoomOn={zoomOn}
-          autoRotate={autoRotate}
+          autoRotate={autoRotate && !prefersReducedMotion}
           onPerf={(level) => setDpr(level === 'low' ? 1 : 1.5)}
         />
       </Canvas>
@@ -131,12 +160,18 @@ export default function HouseShowcase() {
         <h3 className="mt-1.5 font-display text-2xl text-white sm:text-3xl">Residência Prime</h3>
         <p className="mt-1 text-xs text-white/55 sm:text-sm">2 pavimentos · 192 m² · 3 dormitórios · piscina</p>
         <p className="mt-3 hidden text-[11px] text-white/40 sm:block">
-          Arraste para girar · clique na cena para ativar o zoom
+          {prefersReducedMotion
+            ? 'Animação desativada (preferência do sistema). Use os controles para navegar.'
+            : 'Arraste para girar · clique na cena para ativar o zoom'}
         </p>
       </div>
 
       {/* Lista de cômodos (desktop) */}
-      <aside className="absolute right-5 top-7 hidden max-h-[calc(100%-9rem)] w-56 overflow-y-auto rounded-3xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xl md:block">
+      <aside
+        className="absolute right-5 top-7 hidden max-h-[calc(100%-9rem)] w-56 overflow-y-auto rounded-3xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xl md:block"
+        aria-label="Lista de cômodos"
+        role="navigation"
+      >
         {FLOORS.slice()
           .reverse()
           .map((f) => (
@@ -149,9 +184,17 @@ export default function HouseShowcase() {
                   key={r.id}
                   type="button"
                   onClick={() => selectRoom(selected === r.id ? null : r.id)}
-                  className={`flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-1.5 text-left text-[13px] transition-colors ${
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      selectRoom(selected === r.id ? null : r.id)
+                    }
+                  }}
+                  className={`flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-1.5 text-left text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#070c18] ${
                     selected === r.id ? 'bg-[#e8c98f] text-[#1a1408]' : 'text-white/80 hover:bg-white/10'
                   }`}
+                  aria-pressed={selected === r.id}
+                  aria-label={`${r.name}, ${r.w * r.d} m²${selected === r.id ? ', selecionado' : ''}`}
                 >
                   <span className="truncate">{r.name}</span>
                   <span className={`shrink-0 text-[11px] ${selected === r.id ? 'text-[#1a1408]/70' : 'text-white/40'}`}>
@@ -165,12 +208,16 @@ export default function HouseShowcase() {
 
       {/* Cartão do cômodo */}
       {room && (
-        <div className="absolute inset-x-4 bottom-24 rounded-3xl border border-white/10 bg-[#0b1224]/80 p-5 backdrop-blur-2xl sm:inset-x-auto sm:bottom-24 sm:left-8 sm:w-80">
+        <div
+          className="absolute inset-x-4 bottom-24 rounded-3xl border border-white/10 bg-[#0b1224]/80 p-5 backdrop-blur-2xl sm:inset-x-auto sm:bottom-24 sm:left-8 sm:w-80"
+          role="region"
+          aria-label={`Detalhes do ${room.name}`}
+        >
           <button
             type="button"
             onClick={() => setSelected(null)}
             aria-label="Fechar detalhes do cômodo"
-            className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+            className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#070c18]"
           >
             ✕
           </button>
@@ -184,8 +231,23 @@ export default function HouseShowcase() {
 
       {/* Controles */}
       <div className="absolute inset-x-0 bottom-5 flex flex-col items-center gap-3 px-4">
-        {mode === 'plan' && <Segmented items={FLOORS} value={planFloor} onChange={setPlanFloor} small />}
-        <Segmented items={MODES} value={mode} onChange={changeMode} />
+        {mode === 'plan' && (
+          <Segmented
+            items={FLOORS}
+            value={planFloor}
+            onChange={setPlanFloor}
+            small
+            controlsId={canvasId}
+            label="Selecionar pavimento"
+          />
+        )}
+        <Segmented
+          items={MODES}
+          value={mode}
+          onChange={changeMode}
+          controlsId={canvasId}
+          label="Modo de visualização 3D"
+        />
       </div>
     </div>
   )

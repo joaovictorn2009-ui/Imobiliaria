@@ -21,6 +21,43 @@ export function generateMetadata({ params }: { params: { id: string } }): Metada
   return { title: property ? `${property.title} - Imobiliária Prime` : 'Imóvel não encontrado' }
 }
 
+function propertySchema(p: ReturnType<typeof getPropertyById>) {
+  if (!p) return null
+  const { address } = p
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateListing',
+    name: p.title,
+    description: p.description,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://imobiliariaprime.com.br'}/properties/${p.id}`,
+    image: p.images,
+    offers: {
+      '@type': 'Offer',
+      price: p.price,
+      priceCurrency: 'BRL',
+      availability: p.status === 'sale'
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/InStock',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: `${address.street}, ${address.number}`,
+      addressLocality: address.city,
+      addressRegion: address.state,
+      postalCode: address.zipCode,
+      addressCountry: 'BR',
+    },
+    numberOfRooms: p.bedrooms,
+    floorSize: {
+      '@type': 'QuantitativeValue',
+      value: p.area,
+      unitCode: 'MTK',
+    },
+    numberOfBathroomsTotal: p.bathrooms,
+    floorLevel: p.type === 'apartment' ? 'upper' : 'ground',
+  }
+}
+
 export default function PropertyPage({ params }: { params: { id: string } }) {
   const p = getPropertyById(params.id)
   if (!p) notFound()
@@ -32,9 +69,16 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
     { icon: Bath, label: 'Banheiros', value: p.bathrooms },
     { icon: Car, label: 'Vagas', value: p.parkingSpaces },
   ]
+  const schema = propertySchema(p)
 
   return (
     <PageShell>
+      {schema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      )}
       <div className="container mx-auto px-4 py-8 lg:py-12">
         <Link href="/properties" className="mb-6 inline-flex items-center gap-2 text-sm text-primary-700 hover:underline">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Voltar para imóveis
