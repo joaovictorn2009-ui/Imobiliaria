@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer'
 import { Reveal } from '@/components/Reveal'
 import { CountUp } from '@/components/CountUp'
 import { ScrollProgress } from '@/components/ScrollProgress'
+import { Property3DExplorerWrapper } from '@/components/3d'
 
 const stats = [
   { end: 15, suffix: '+', label: 'Anos de mercado' },
@@ -173,6 +174,29 @@ export default function HomePage() {
               Agendar visita
               <ArrowRight className="h-5 w-5" aria-hidden="true" />
             </Link>
+          </Reveal>
+        </section>
+
+        {/* Seção de Exploração 3D */}
+        <section id="3d-explorer" className="relative bg-gray-950 py-16 lg:py-24">
+          <div className="animate-float absolute -left-24 top-10 -z-10 h-96 w-96 rounded-full bg-primary-500/20 blur-3xl" />
+          <div className="animate-float-slow absolute -right-20 bottom-0 -z-10 h-[28rem] w-[28rem] rounded-full bg-accent-600/15 blur-3xl" />
+          <Reveal className="container mx-auto px-4">
+            <div className="mx-auto max-w-3xl text-center mb-12">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-400 mb-3">Visualização Imersiva</p>
+              <h2 className="font-display text-3xl font-bold text-white lg:text-5xl mb-4">
+                Explore seu futuro lar em <span className="italic text-primary-400">3D</span>
+              </h2>
+              <p className="text-lg text-primary-100/80">
+                Navegue pelo apartamento decorado, clique nos cômodos para ver detalhes e use o modo explosão para entender a planta completa.
+              </p>
+            </div>
+            <div className="mx-auto max-w-5xl">
+              <Property3DExplorerWrapper
+                title="Explore em 3D"
+                subtitle="Navegue pelo imóvel, clique nos cômodos para ver detalhes"
+              />
+            </div>
           </Reveal>
         </section>
       </main>
