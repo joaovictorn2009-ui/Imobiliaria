@@ -4,57 +4,88 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Property } from '@/types'
 import { formatCurrency } from '@/lib/utils'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { MapPin, Bed, Bath, Car, Square, ArrowRight } from 'lucide-react'
-import { PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS, PROPERTY_FEATURE_LABELS } from '@/types'
+import { Card, CardContent, CardFooter, CardElevated } from '@/components/ui/card'
+import { Badge, StatusBadge, FeatureBadge } from '@/components/ui/badge'
+import { MapPin, Bed, Bath, Car, Square, ArrowRight, Heart, Share2, Scale } from 'lucide-react'
+import { PROPERTY_TYPE_LABELS, PROPERTY_FEATURE_LABELS } from '@/types'
+import { cn } from '@/lib/utils'
 
 interface PropertyCardProps {
   property: Property
   priority?: boolean
+  variant?: 'default' | 'elevated' | 'featured'
 }
 
-export function PropertyCard({ property, priority = false }: PropertyCardProps) {
-  const statusColor = property.status === 'sale' ? 'success' : 'warning'
-  const statusLabel = PROPERTY_STATUS_LABELS[property.status]
+export function PropertyCard({ property, priority = false, variant = 'default' }: PropertyCardProps) {
+  const CardComponent = variant === 'elevated' ? CardElevated : Card
+  const statusLabel = property.status === 'sale' ? 'sale' : 'rent'
   const typeLabel = PROPERTY_TYPE_LABELS[property.type]
 
   return (
     <article className="group relative">
-      <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+      <CardComponent className="overflow-hidden h-full transition-all duration-300 hover:shadow-elevation-3 hover:-translate-y-1">
         <div className="relative aspect-[4/3] overflow-hidden">
-          <Link href={`/properties/${property.id}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2" aria-label={`Ver detalhes de ${property.title}`}>
+          <Link
+            href={`/properties/${property.id}`}
+            className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            aria-label={`Ver detalhes de ${property.title}`}
+          >
             <Image
               src={property.mainImage}
               alt={property.title}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover transition-transform duration-700 ease-spring group-hover:scale-105"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               priority={priority}
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
             />
           </Link>
           <div className="absolute top-3 left-3 flex flex-col gap-2">
-            <Badge variant={statusColor} className="text-xs px-2 py-1">
-              {statusLabel}
-            </Badge>
-            <Badge variant="outline" className="text-xs px-2 py-1 bg-white/90 backdrop-blur-sm">
+            <StatusBadge status={statusLabel} size="sm" />
+            <Badge variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm">
               {typeLabel}
             </Badge>
           </div>
           {property.featured && (
             <div className="absolute top-3 right-3">
-              <Badge variant="default" className="text-xs px-2 py-1">
+              <Badge variant="gold" size="sm" dot>
                 Destaque
               </Badge>
             </div>
           )}
+
+          {/* Quick actions on hover */}
+          <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-2 group-hover:translate-x-0">
+            <button
+              className="w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-error hover:bg-error/10 transition-all duration-200 shadow-sm"
+              aria-label={`Salvar ${property.title}`}
+            >
+              <Heart className="w-4 h-4" aria-hidden="true" />
+            </button>
+            <button
+              className="w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 transition-all duration-200 shadow-sm"
+              aria-label={`Compartilhar ${property.title}`}
+            >
+              <Share2 className="w-4 h-4" aria-hidden="true" />
+            </button>
+            <button
+              className="w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 transition-all duration-200 shadow-sm"
+              aria-label={`Comparar ${property.title}`}
+            >
+              <Scale className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         <CardContent className="p-4 pb-0">
           <div className="flex items-start justify-between gap-2 mb-3">
             <div className="flex-1 min-w-0">
-              <Link href={`/properties/${property.id}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded">
-                <h3 className="font-semibold text-gray-900 truncate group-hover:text-primary-600 transition-colors">
+              <Link
+                href={`/properties/${property.id}`}
+                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+              >
+                <h3 className="font-semibold text-gray-900 truncate group-hover:text-primary-600 transition-colors line-clamp-1">
                   {property.title}
                 </h3>
               </Link>
@@ -92,12 +123,10 @@ export function PropertyCard({ property, priority = false }: PropertyCardProps) 
 
           <div className="flex flex-wrap gap-1.5 mb-4" role="list" aria-label="Comodidades">
             {property.features.slice(0, 4).map((feature) => (
-              <Badge key={feature} variant="secondary" className="text-xs px-2 py-0.5">
-                {PROPERTY_FEATURE_LABELS[feature]}
-              </Badge>
+              <FeatureBadge key={feature} feature={feature} variant="secondary" size="sm" />
             ))}
             {property.features.length > 4 && (
-              <Badge variant="outline" className="text-xs px-2 py-0.5 text-gray-500">
+              <Badge variant="outline" size="sm" className="text-gray-500">
                 +{property.features.length - 4}
               </Badge>
             )}
@@ -120,17 +149,23 @@ export function PropertyCard({ property, priority = false }: PropertyCardProps) 
                   {property.iptu ? `IPTU: ${formatCurrency(property.iptu)}/mês` : ''}
                 </p>
               )}
+              {/* Price per m² */}
+              {property.area > 0 && (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {formatCurrency(Math.round(property.price / property.area))}/m²
+                </p>
+              )}
             </div>
             <Link
               href={`/properties/${property.id}`}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-100 text-primary-600 hover:bg-primary-600 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-100 text-primary-600 hover:bg-primary-600 hover:text-white transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 group-hover:scale-105"
               aria-label={`Ver detalhes de ${property.title}`}
             >
-              <ArrowRight className="w-5 h-5" aria-hidden="true" />
+              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
           </div>
         </CardFooter>
-      </Card>
+      </CardComponent>
     </article>
   )
 }

@@ -1,9 +1,8 @@
-import type { Metadata } from 'next'
+'use client'
+
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { ContactForm } from '@/components/ContactForm'
-
-export const metadata: Metadata = { title: 'Contato - Imobiliária Prime' }
 
 export default function ContactPage({ searchParams }: { searchParams: { imovel?: string } }) {
   return (

@@ -1,15 +1,17 @@
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
+import { cn } from '@/lib/utils'
 
 interface PageShellProps {
   title?: string
   subtitle?: string
   children: React.ReactNode
+  className?: string
 }
 
-export function PageShell({ title, subtitle, children }: PageShellProps) {
+export function PageShell({ title, subtitle, children, className }: PageShellProps) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={cn("min-h-screen flex flex-col", className)}>
       <Header />
       <main className="flex-1">
         {title && (

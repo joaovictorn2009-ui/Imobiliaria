@@ -1,11 +1,14 @@
 import Link from 'next/link'
-import { Facebook, Instagram, Linkedin, Youtube, Mail, Phone, MapPin, Heart, Shield, Truck, Star } from 'lucide-react'
+import { Facebook, Instagram, Linkedin, Youtube, Mail, Phone, MapPin, Heart, Shield, Truck, Star, Award, CheckCircle } from 'lucide-react'
 import { NewsletterForm } from '@/components/NewsletterForm'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 const footerLinks = {
   empresa: [
     { href: '/about', label: 'Sobre nós' },
     { href: '/contact', label: 'Fale conosco' },
+    { href: '/careers', label: 'Trabalhe conosco' },
   ],
   imoveis: [
     { href: '/properties?type=apartment', label: 'Apartamentos' },
@@ -17,6 +20,13 @@ const footerLinks = {
   suporte: [
     { href: '/terms', label: 'Termos de uso' },
     { href: '/privacy', label: 'Política de privacidade' },
+    { href: '/faq', label: 'Perguntas frequentes' },
+  ],
+  recursos: [
+    { href: '/guides/buying', label: 'Guia de compra' },
+    { href: '/guides/renting', label: 'Guia de aluguel' },
+    { href: '/guides/financing', label: 'Financiamento' },
+    { href: '/market-report', label: 'Relatório de mercado' },
   ],
 }
 
@@ -34,6 +44,13 @@ const benefits = [
   { icon: Heart, title: 'Satisfação', desc: 'Ou seu dinheiro de volta' },
 ]
 
+const certifications = [
+  { label: 'CRECI-SP', desc: 'Conselho Regional de Corretores' },
+  { label: 'SECOVI', desc: 'Sindicato da Habitação' },
+  { label: 'ABMI', desc: 'Associação Brasileira do Mercado Imobiliário' },
+  { label: 'ISO 9001', desc: 'Gestão de Qualidade' },
+]
+
 export function Footer() {
   const currentYear = new Date().getFullYear()
 
@@ -43,9 +60,9 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 lg:gap-12">
           <div className="col-span-2 lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 text-2xl font-display font-bold text-white mb-6" aria-label="Imobiliária Prime - Página inicial">
-              <svg className="w-10 h-10 text-primary-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="w-10 h-10 text-gold" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
+                <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               <span>Imobiliária Prime</span>
             </Link>
@@ -54,19 +71,19 @@ export function Footer() {
             </p>
             <div className="space-y-3 mb-8">
               <div className="flex items-center gap-3 text-gray-300">
-                <MapPin className="w-5 h-5 text-primary-400 flex-shrink-0" />
+                <MapPin className="w-5 h-5 text-gold flex-shrink-0" />
                 <address className="not-italic text-sm">Av. Paulista, 1000 - Bela Vista, São Paulo - SP, 01310-100</address>
               </div>
               <a href="tel:+551130000000" className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors">
-                <Phone className="w-5 h-5 text-primary-400 flex-shrink-0" />
+                <Phone className="w-5 h-5 text-gold flex-shrink-0" />
                 <span className="text-sm">(11) 3000-0000</span>
               </a>
               <a href="mailto:contato@imobiliariaprime.com.br" className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors">
-                <Mail className="w-5 h-5 text-primary-400 flex-shrink-0" />
+                <Mail className="w-5 h-5 text-gold flex-shrink-0" />
                 <span className="text-sm">contato@imobiliariaprime.com.br</span>
               </a>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-4 mb-8">
               {socialLinks.map((social) => (
                 <a
                   key={social.label}
@@ -74,10 +91,18 @@ export function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary-600 hover:text-white transition-colors"
+                  className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-gold hover:text-gray-950 transition-all duration-300"
                 >
                   <social.icon className="w-5 h-5" aria-hidden="true" />
                 </a>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {certifications.map((cert, i) => (
+                <Badge key={i} variant="goldOutline" size="sm" className="gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  <span>{cert.label}</span>
+                </Badge>
               ))}
             </div>
           </div>
@@ -87,7 +112,7 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.empresa.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href={link.href} className="text-gray-400 hover:text-gold transition-colors text-sm">
                     {link.label}
                   </Link>
                 </li>
@@ -100,7 +125,7 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.imoveis.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href={link.href} className="text-gray-400 hover:text-gold transition-colors text-sm">
                     {link.label}
                   </Link>
                 </li>
@@ -113,7 +138,20 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.suporte.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors text-sm">
+                  <Link href={link.href} className="text-gray-400 hover:text-gold transition-colors text-sm">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label="Recursos e guias">
+            <h3 className="font-semibold text-white mb-4">Recursos</h3>
+            <ul className="space-y-3">
+              {footerLinks.recursos.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-gray-400 hover:text-gold transition-colors text-sm">
                     {link.label}
                   </Link>
                 </li>
@@ -128,7 +166,7 @@ export function Footer() {
             </p>
             <NewsletterForm />
             <p className="text-gray-500 text-xs mt-3 max-w-xs">
-              Ao cadastrar, você concorda com nossa <Link href="/privacy" className="underline hover:text-white">Política de Privacidade</Link>.
+              Ao cadastrar, você concorda com nossa <Link href="/privacy" className="underline hover:text-gold">Política de Privacidade</Link>.
             </p>
           </div>
         </div>
@@ -141,13 +179,13 @@ export function Footer() {
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
               {benefits.map((benefit, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <benefit.icon className="w-4 h-4 text-primary-400" />
+                  <benefit.icon className="w-4 h-4 text-gold" />
                   <span>{benefit.title}: {benefit.desc}</span>
                 </div>
               ))}
             </div>
             <div className="flex items-center gap-2 text-gray-500 text-sm">
-              <Heart className="w-4 h-4 text-red-500" aria-hidden="true" />
+              <Heart className="w-4 h-4 text-error" aria-hidden="true" />
               <span>Feito com carinho para você</span>
             </div>
           </div>

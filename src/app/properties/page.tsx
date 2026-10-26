@@ -3,37 +3,11 @@ import { PageShell } from '@/components/PageShell'
 import { PropertyExplorer } from '@/components/PropertyExplorer'
 import { PROPERTY_TYPE_LABELS, type PropertyType } from '@/types'
 import { mockProperties } from '@/data/mockProperties'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { listingSchema } from '@/lib/schemas'
 
 export const metadata: Metadata = { title: 'Imóveis - Imobiliária Prime' }
-
-function listingSchema(properties: typeof mockProperties) {
-  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://imobiliariaprime.com.br'
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    itemListElement: properties.map((p, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      item: {
-        '@type': 'RealEstateListing',
-        name: p.title,
-        url: `${BASE_URL}/properties/${p.id}`,
-        image: p.mainImage,
-        offers: {
-          '@type': 'Offer',
-          price: p.price,
-          priceCurrency: 'BRL',
-        },
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: p.address.city,
-          addressRegion: p.address.state,
-          addressCountry: 'BR',
-        },
-      },
-    })),
-  }
-}
 
 export default function PropertiesPage({
   searchParams,
@@ -53,10 +27,20 @@ export default function PropertiesPage({
       />
       <section className="py-12 lg:py-16">
         <div className="container mx-auto px-4">
+          <div className="mb-8">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+              Voltar ao início
+            </Link>
+          </div>
           <PropertyExplorer
             key={`${types.join()}|${keyword}`}
             initialFilters={{ types, keyword }}
             pageSize={9}
+            showViewToggle
           />
         </div>
       </section>
