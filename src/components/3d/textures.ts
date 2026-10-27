@@ -122,13 +122,57 @@ export function concreteTexture(base: string, seed = 5) {
 
 export function grassTexture(seed = 6) {
   return make(256, seed, (ctx, size, r) => {
-    ctx.fillStyle = '#2b4a33'
+    ctx.fillStyle = '#4c8647'
     ctx.fillRect(0, 0, size, size)
     for (let i = 0; i < 2600; i++) {
       const g = 70 + Math.floor(r() * 70)
-      ctx.fillStyle = `rgba(${30 + r() * 30},${g},${40 + r() * 30},0.45)`
+      ctx.fillStyle = `rgba(${50 + r() * 40},${g + 25},${40 + r() * 30},0.45)`
       ctx.fillRect(r() * size, r() * size, 1, 2 + r() * 3)
     }
+  })
+}
+
+export function stoneCladTexture(seed = 30) {
+  return make(512, seed, (ctx, size, r) => {
+    ctx.fillStyle = '#7c766c'
+    ctx.fillRect(0, 0, size, size)
+    let y = 0
+    while (y < size) {
+      const h = 46 + r() * 28
+      let x = -r() * 70
+      while (x < size) {
+        const w = 70 + r() * 100
+        const g = 118 + Math.floor(r() * 62)
+        ctx.fillStyle = `rgb(${g},${g - 6},${g - 14})`
+        ctx.fillRect(x + 3, y + 3, w - 6, h - 6)
+        ctx.fillStyle = 'rgba(0,0,0,0.14)'
+        ctx.fillRect(x + 3, y + h - 10, w - 6, 7)
+        ctx.fillStyle = 'rgba(255,255,255,0.08)'
+        ctx.fillRect(x + 3, y + 3, w - 6, 4)
+        x += w
+      }
+      y += h
+    }
+    noise(ctx, size, r, 1800, 0.06)
+  })
+}
+
+export function paversTexture(seed = 31) {
+  return make(512, seed, (ctx, size, r) => {
+    ctx.fillStyle = '#58595d'
+    ctx.fillRect(0, 0, size, size)
+    const rows = 16
+    const bh = size / rows
+    const bw = size / 8
+    for (let j = 0; j < rows; j++) {
+      const off = j % 2 ? bw / 2 : 0
+      for (let i = -1; i < 9; i++) {
+        const g = 128 + Math.floor(r() * 36)
+        ctx.fillStyle = `rgb(${g},${g - 4},${g - 8})`
+        ctx.fillRect(i * bw + off + 1.5, j * bh + 1.5, bw - 3, bh - 3)
+      }
+    }
+    noise(ctx, size, r, 1200, 0.05)
   })
 }
 
@@ -158,6 +202,8 @@ export interface TextureSet {
   roof: THREE.Texture
   deck: THREE.Texture
   grass: THREE.Texture
+  stoneClad: THREE.Texture
+  pavers: THREE.Texture
   bump: THREE.Texture
   water: THREE.Texture
 }
@@ -172,9 +218,11 @@ export function createTextures(): TextureSet {
     stucco: stuccoTexture('#f1ede6', 16),
     timber: timberTexture('#8b5e3c', 17),
     concrete: concreteTexture('#d6d0c6', 18),
-    roof: concreteTexture('#33363c', 19),
+    roof: concreteTexture('#7d8189', 19),
     deck: woodTexture('#9a8a76', 20),
     grass: grassTexture(21),
+    stoneClad: stoneCladTexture(30),
+    pavers: paversTexture(31),
     bump: bumpTexture(22),
     water: bumpTexture(23),
   }

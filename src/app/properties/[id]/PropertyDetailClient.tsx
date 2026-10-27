@@ -28,6 +28,7 @@ import { PropertyActions } from '@/components/PropertyActions'
 import { PropertyCard } from '@/components/PropertyCard'
 import { AlertForm } from '@/components/AlertForm'
 import { House3DLazy } from '@/components/3d'
+import { planForProperty } from '@/components/3d/plans'
 import { PHONE_DISPLAY, PHONE_HREF, whatsappLink } from '@/lib/contact'
 import { cn, formatCurrency } from '@/lib/utils'
 import {
@@ -72,6 +73,8 @@ export function PropertyDetailClient({ property, similarProperties }: Props) {
   const [tab, setTab] = useState<TabId>('sobre')
   const [showContact, setShowContact] = useState(false)
   const tabsRef = useRef<HTMLDivElement>(null)
+  const planId = planForProperty(property.id)
+  const tabs = TABS.filter((t) => t.id !== 'plantas' || planId)
 
   const images = property.images
   const total = images.length
@@ -113,9 +116,9 @@ export function PropertyDetailClient({ property, similarProperties }: Props) {
   }
 
   const onTabKey = (e: React.KeyboardEvent) => {
-    const i = TABS.findIndex((t) => t.id === tab)
-    if (e.key === 'ArrowRight') setTab(TABS[(i + 1) % TABS.length].id)
-    if (e.key === 'ArrowLeft') setTab(TABS[(i - 1 + TABS.length) % TABS.length].id)
+    const i = tabs.findIndex((t) => t.id === tab)
+    if (e.key === 'ArrowRight') setTab(tabs[(i + 1) % tabs.length].id)
+    if (e.key === 'ArrowLeft') setTab(tabs[(i - 1 + tabs.length) % tabs.length].id)
   }
 
   const specs = [
@@ -191,13 +194,15 @@ export function PropertyDetailClient({ property, similarProperties }: Props) {
                   <Expand className="h-3.5 w-3.5" aria-hidden="true" />
                   {index + 1} / {total} fotos
                 </span>
-                <button
-                  type="button"
-                  onClick={() => goTab('plantas')}
-                  className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-gold-foreground shadow transition-transform hover:scale-105"
-                >
-                  Ver tour 3D
-                </button>
+                {planId && (
+                  <button
+                    type="button"
+                    onClick={() => goTab('plantas')}
+                    className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-gold-foreground shadow transition-transform hover:scale-105"
+                  >
+                    Ver planta 3D
+                  </button>
+                )}
               </div>
             </div>
 
@@ -255,7 +260,7 @@ export function PropertyDetailClient({ property, similarProperties }: Props) {
               onKeyDown={onTabKey}
               className="flex gap-1 overflow-x-auto border-b border-gray-200"
             >
-              {TABS.map((t) => (
+              {tabs.map((t) => (
                 <button
                   key={t.id}
                   id={`tab-${t.id}`}
@@ -335,10 +340,10 @@ export function PropertyDetailClient({ property, similarProperties }: Props) {
               {tab === 'plantas' && (
                 <div className="space-y-4">
                   <p className="text-sm text-gray-600">
-                    Modelo 3D <strong>ilustrativo</strong>, que mostra como a visualização de planta funciona. Não representa
-                    exatamente a planta deste imóvel.
+                    Modelo 3D e planta <strong>ilustrativos</strong>, feitos a partir dos dados deste anúncio (área, suítes,
+                    vagas e ambientes). Não substituem o projeto arquitetônico oficial: peça a planta ao corretor.
                   </p>
-                  <House3DLazy />
+                  {planId && <House3DLazy planId={planId} showListingLink={false} />}
                 </div>
               )}
 

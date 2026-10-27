@@ -299,7 +299,7 @@ export default function HomePage() {
                 Explore seu futuro lar em <span className="italic text-gold">3D</span>
               </h2>
               <p className="text-lg text-primary-100/80">
-                Gire a casa, veja a planta de cada pavimento e separe os andares para entender cada cômodo.
+                Gire a casa do anúncio de Alphaville, abra o corte 3D e veja a planta técnica com medidas, portas e móveis.
               </p>
             </div>
             <div className="mx-auto max-w-5xl">
