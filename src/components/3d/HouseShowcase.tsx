@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { Moon, Sun } from 'lucide-react'
 import { Canvas } from '@react-three/fiber'
 import { HouseScene } from './HouseScene'
 import { CAMERA_PRESETS, ROOMS, type LevelId, type Mode } from './houseData'
@@ -88,6 +89,7 @@ export default function HouseShowcase() {
   const [zoomOn, setZoomOn] = useState(false)
   const [autoRotate, setAutoRotate] = useState(true)
   const [dpr, setDpr] = useState(1.5)
+  const [night, setNight] = useState(false)
   const [visible, setVisible] = useState(true)
   const wrap = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -148,6 +150,7 @@ export default function HouseShowcase() {
           onSelect={selectRoom}
           zoomOn={zoomOn}
           autoRotate={autoRotate && !prefersReducedMotion}
+          night={night}
           onPerf={(level) => setDpr(level === 'low' ? 1 : 1.5)}
         />
       </Canvas>
@@ -228,6 +231,17 @@ export default function HouseShowcase() {
           <p className="mt-2 text-sm leading-relaxed text-white/65">{room.desc}</p>
         </div>
       )}
+
+      {/* Dia / noite */}
+      <button
+        type="button"
+        onClick={() => setNight((n) => !n)}
+        aria-pressed={night}
+        aria-label={night ? 'Mudar para o dia' : 'Mudar para a noite'}
+        className="absolute bottom-5 right-4 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/[0.08] text-[#e8c98f] backdrop-blur-xl transition-all hover:scale-110 hover:bg-white/15 sm:right-6"
+      >
+        {night ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
+      </button>
 
       {/* Controles */}
       <div className="absolute inset-x-0 bottom-5 flex flex-col items-center gap-3 px-4">

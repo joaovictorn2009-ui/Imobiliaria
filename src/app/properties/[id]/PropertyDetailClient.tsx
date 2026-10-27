@@ -1,465 +1,539 @@
 'use client'
 
-import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Property } from '@/types'
-import { formatCurrency } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Badge, StatusBadge, FeatureBadge } from '@/components/ui/badge'
-import { Input, Textarea } from '@/components/ui/input'
-import { ContactForm } from '@/components/ContactForm'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  MapPin,
-  Bed,
-  Bath,
-  Car,
-  Square,
   ArrowLeft,
-  Share2,
-  Heart,
-  Phone,
-  Mail,
-  Clock,
+  Bath,
+  Bed,
   Calendar,
+  Car,
   Check,
   ChevronLeft,
   ChevronRight,
+  Expand,
+  FileCheck2,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Square,
+  X,
 } from 'lucide-react'
-import { PROPERTY_TYPE_LABELS, PROPERTY_FEATURE_LABELS, PROPERTY_STATUS_LABELS } from '@/types'
-import { cn } from '@/lib/utils'
+import { Badge, FeatureBadge, StatusBadge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { ContactForm } from '@/components/ContactForm'
+import { PropertyActions } from '@/components/PropertyActions'
+import { PropertyCard } from '@/components/PropertyCard'
+import { AlertForm } from '@/components/AlertForm'
+import { House3DLazy } from '@/components/3d'
+import { PHONE_DISPLAY, PHONE_HREF, whatsappLink } from '@/lib/contact'
+import { cn, formatCurrency } from '@/lib/utils'
+import {
+  PROPERTY_FEATURE_LABELS,
+  PROPERTY_STATUS_LABELS,
+  PROPERTY_TYPE_LABELS,
+  type Property,
+} from '@/types'
 
-interface PropertyDetailClientProps {
+// O mapa (Leaflet) só é baixado quando a aba "Localização" é aberta.
+const PropertyMap = dynamic(() => import('@/components/maps/PropertyMap'), {
+  ssr: false,
+  loading: () => <div className="h-[380px] animate-pulse rounded-2xl bg-gray-100" aria-hidden="true" />,
+})
+
+type TabId = 'sobre' | 'caracteristicas' | 'plantas' | 'local' | 'docs'
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'sobre', label: 'Sobre' },
+  { id: 'caracteristicas', label: 'Características' },
+  { id: 'plantas', label: 'Planta e 3D' },
+  { id: 'local', label: 'Localização' },
+  { id: 'docs', label: 'Documentação' },
+]
+
+const DOCS = [
+  'Matrícula atualizada do imóvel',
+  'Certidões negativas de débitos (IPTU e condomínio)',
+  'Certidões pessoais do vendedor',
+  'Habite-se e regularização da construção',
+  'Conferência de ônus, penhoras e restrições',
+]
+
+interface Props {
   property: Property
   similarProperties: Property[]
 }
 
-export function PropertyDetailClient({ property, similarProperties }: PropertyDetailClientProps) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [showContactForm, setShowContactForm] = useState(false)
+export function PropertyDetailClient({ property, similarProperties }: Props) {
+  const [index, setIndex] = useState(0)
+  const [lightbox, setLightbox] = useState(false)
+  const [tab, setTab] = useState<TabId>('sobre')
+  const [showContact, setShowContact] = useState(false)
+  const tabsRef = useRef<HTMLDivElement>(null)
 
-  const statusLabel = property.status === 'sale' ? 'sale' : 'rent'
-  const typeLabel = PROPERTY_TYPE_LABELS[property.type]
+  const images = property.images
+  const total = images.length
+  const next = useCallback(() => setIndex((i) => (i + 1) % total), [total])
+  const prev = useCallback(() => setIndex((i) => (i - 1 + total) % total), [total])
 
-  const formatNumber = (num: number) => new Intl.NumberFormat('pt-BR').format(num)
+  const statusKey = property.status === 'sale' ? 'sale' : 'rent'
+  const perSqm = Math.round(property.price / property.area)
+  const monthly = property.status === 'rent' ? property.price + (property.condoFee ?? 0) + (property.iptu ?? 0) : null
+  const waMessage = `Olá! Tenho interesse no imóvel "${property.title}" (${property.address.neighborhood}).`
+
+  // abre a aba pedida pela URL (#planta, #local...)
+  useEffect(() => {
+    const map: Record<string, TabId> = { '#planta': 'plantas', '#3d': 'plantas', '#local': 'local', '#docs': 'docs' }
+    const t = map[window.location.hash]
+    if (t) setTab(t)
+  }, [])
+
+  // navegação do lightbox pelo teclado
+  useEffect(() => {
+    if (!lightbox) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightbox(false)
+      if (e.key === 'ArrowRight') next()
+      if (e.key === 'ArrowLeft') prev()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [lightbox, next, prev])
+
+  const goTab = (t: TabId) => {
+    setTab(t)
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const onTabKey = (e: React.KeyboardEvent) => {
+    const i = TABS.findIndex((t) => t.id === tab)
+    if (e.key === 'ArrowRight') setTab(TABS[(i + 1) % TABS.length].id)
+    if (e.key === 'ArrowLeft') setTab(TABS[(i - 1 + TABS.length) % TABS.length].id)
+  }
+
+  const specs = [
+    { icon: Square, label: 'Área', value: `${property.area} m²` },
+    property.bedrooms > 0 && { icon: Bed, label: 'Quartos', value: property.bedrooms },
+    property.bathrooms > 0 && { icon: Bath, label: 'Banheiros', value: property.bathrooms },
+    property.parkingSpaces > 0 && { icon: Car, label: 'Vagas', value: property.parkingSpaces },
+  ].filter(Boolean) as { icon: typeof Square; label: string; value: string | number }[]
 
   return (
-    <div className="space-y-12 lg:space-y-16">
-      {/* Back link */}
+    <div className="pb-24 lg:pb-0">
       <Link
         href="/properties"
-        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-colors"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-gray-600 transition-colors hover:text-primary-600"
       >
-        <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         Voltar aos imóveis
       </Link>
 
-      {/* Image Gallery */}
-      <section aria-label="Galeria de imagens do imóvel">
-        <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-gray-100">
-          <Image
-            src={property.images[currentImageIndex]}
-            alt={`${property.title} - Imagem ${currentImageIndex + 1} de ${property.images.length}`}
-            fill
-            className="object-cover transition-opacity duration-300"
-            priority
-            sizes="100vw"
-          />
-
-          {/* Navigation arrows */}
-          {property.images.length > 1 && (
-            <>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-10">
+        {/* ---------- Coluna principal ---------- */}
+        <div className="min-w-0 space-y-8">
+          {/* Galeria */}
+          <section aria-label="Galeria de fotos">
+            <div className="group relative aspect-[16/10] overflow-hidden rounded-3xl bg-gray-100">
               <button
-                onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? property.images.length - 1 : prev - 1))}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:bg-white shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                aria-label="Imagem anterior"
-              >
-                <ChevronLeft className="w-6 h-6" aria-hidden="true" />
-              </button>
-              <button
-                onClick={() => setCurrentImageIndex((prev) => (prev === property.images.length - 1 ? 0 : prev + 1))}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:bg-white shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                aria-label="Próxima imagem"
-              >
-                <ChevronRight className="w-6 h-6" aria-hidden="true" />
-              </button>
-            </>
-          )}
-
-          {/* Image counter */}
-          {property.images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-              {property.images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentImageIndex(i)}
-                  aria-label={`Ver imagem ${i + 1}`}
-                  aria-current={i === currentImageIndex}
-                  className={cn(
-                    'w-2.5 h-2.5 rounded-full transition-all duration-200',
-                    i === currentImageIndex ? 'bg-white w-8' : 'bg-white/50 hover:bg-white'
-                  )}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Badges */}
-          <div className="absolute top-4 left-4 flex flex-col gap-2">
-            <StatusBadge status={statusLabel} size="md" />
-            <Badge variant="outline" size="md" className="bg-white/90 backdrop-blur-sm">
-              {typeLabel}
-            </Badge>
-            {property.featured && (
-              <Badge variant="gold" size="md" dot>Destaque</Badge>
-            )}
-          </div>
-
-          {/* Quick actions */}
-          <div className="absolute top-4 right-4 flex flex-col gap-2">
-            <button
-              className="w-11 h-11 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:text-error hover:bg-error/10 transition-all duration-200 shadow-lg"
-              aria-label={`Salvar ${property.title}`}
-            >
-              <Heart className="w-5 h-5" aria-hidden="true" />
-            </button>
-            <button
-              className="w-11 h-11 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:text-primary hover:bg-primary/10 transition-all duration-200 shadow-lg"
-              aria-label={`Compartilhar ${property.title}`}
-            >
-              <Share2 className="w-5 h-5" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-
-        {/* Thumbnail strip */}
-        {property.images.length > 1 && (
-          <div className="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {property.images.map((img, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentImageIndex(i)}
-                aria-label={`Ver imagem ${i + 1}`}
-                aria-current={i === currentImageIndex}
-                className={cn(
-                  'relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200',
-                  i === currentImageIndex ? 'border-primary' : 'border-transparent hover:border-gray-300'
+                type="button"
+                onClick={() => setLightbox(true)}
+                className="absolute inset-0 z-[1] cursor-zoom-in focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-primary-400"
+                aria-label="Ampliar foto"
+              />
+              <Image
+                src={images[index]}
+                alt={`${property.title} - foto ${index + 1} de ${total}`}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 800px"
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              />
+              <div className="absolute left-4 top-4 z-[2] flex flex-col gap-2">
+                <StatusBadge status={statusKey} size="md" />
+                <Badge variant="outline" size="md" className="bg-white/90 backdrop-blur-sm">
+                  {PROPERTY_TYPE_LABELS[property.type]}
+                </Badge>
+                {property.featured && (
+                  <Badge variant="gold" size="md" dot>
+                    Destaque
+                  </Badge>
                 )}
-              >
-                <Image
-                  src={img}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Property Info */}
-      <section className="space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge status={statusLabel} size="lg" />
-              <Badge variant="outline" size="md">{typeLabel}</Badge>
-              {property.featured && <Badge variant="gold" size="md" dot>Destaque</Badge>}
+              </div>
+              {total > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={prev}
+                    aria-label="Foto anterior"
+                    className="absolute left-3 top-[62%] z-[2] grid h-11 w-11 -translate-y-1/2 sm:top-1/2 place-items-center rounded-full bg-white/90 text-gray-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white"
+                  >
+                    <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={next}
+                    aria-label="Próxima foto"
+                    className="absolute right-3 top-[62%] z-[2] grid h-11 w-11 -translate-y-1/2 sm:top-1/2 place-items-center rounded-full bg-white/90 text-gray-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white"
+                  >
+                    <ChevronRight className="h-6 w-6" aria-hidden="true" />
+                  </button>
+                </>
+              )}
+              <div className="absolute bottom-4 left-4 z-[2] flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white backdrop-blur">
+                  <Expand className="h-3.5 w-3.5" aria-hidden="true" />
+                  {index + 1} / {total} fotos
+                </span>
+                <button
+                  type="button"
+                  onClick={() => goTab('plantas')}
+                  className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-gold-foreground shadow transition-transform hover:scale-105"
+                >
+                  Ver tour 3D
+                </button>
+              </div>
             </div>
-            <h1 className="font-display text-3xl lg:text-4xl font-bold text-gray-900">{property.title}</h1>
-            <div className="flex items-center gap-3 text-gray-600">
-              <MapPin className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+
+            {total > 1 && (
+              <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                {images.map((img, i) => (
+                  <button
+                    key={img}
+                    type="button"
+                    onClick={() => setIndex(i)}
+                    aria-label={`Ver foto ${i + 1}`}
+                    aria-current={i === index}
+                    className={cn(
+                      'relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all',
+                      i === index ? 'border-primary-600' : 'border-transparent opacity-70 hover:opacity-100'
+                    )}
+                  >
+                    <Image src={img} alt="" fill sizes="96px" className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Título e números principais */}
+          <section>
+            <h2 className="font-display text-2xl font-bold text-gray-900 sm:text-3xl">{property.title}</h2>
+            <p className="mt-2 flex items-start gap-2 text-gray-600">
+              <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
               <span>
                 {property.address.street}, {property.address.number} - {property.address.neighborhood},{' '}
                 {property.address.city} - {property.address.state}
               </span>
-            </div>
-          </div>
-          <div className="flex items-baseline gap-4 sm:ml-auto">
-            <div className="text-3xl lg:text-4xl font-bold text-gray-900">{formatCurrency(property.price)}</div>
-            {property.status === 'rent' && <span className="text-gray-500">/mês</span>}
-          </div>
-        </div>
+            </p>
+            <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {specs.map((s) => (
+                <div key={s.label} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary-100 text-primary-700">
+                    <s.icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <dt className="text-xs text-gray-500">{s.label}</dt>
+                    <dd className="text-lg font-bold text-gray-900">{s.value}</dd>
+                  </div>
+                </div>
+              ))}
+            </dl>
+          </section>
 
-        {/* Key specs */}
-        <div className="flex flex-wrap gap-4 lg:gap-6 border-y border-gray-200 py-6">
-          <div className="flex items-center gap-3 flex-1 min-w-[140px]">
-            <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600">
-              <Square className="w-6 h-6" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Área total</p>
-              <p className="text-xl font-bold text-gray-900">{formatNumber(property.area)} m²</p>
-            </div>
-          </div>
-          {property.bedrooms > 0 && (
-            <div className="flex items-center gap-3 flex-1 min-w-[140px]">
-              <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600">
-                <Bed className="w-6 h-6" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Quartos</p>
-                <p className="text-xl font-bold text-gray-900">{property.bedrooms}</p>
-              </div>
-            </div>
-          )}
-          {property.bathrooms > 0 && (
-            <div className="flex items-center gap-3 flex-1 min-w-[140px]">
-              <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600">
-                <Bath className="w-6 h-6" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Banheiros</p>
-                <p className="text-xl font-bold text-gray-900">{property.bathrooms}</p>
-              </div>
-            </div>
-          )}
-          {property.parkingSpaces > 0 && (
-            <div className="flex items-center gap-3 flex-1 min-w-[140px]">
-              <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600">
-                <Car className="w-6 h-6" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Vagas</p>
-                <p className="text-xl font-bold text-gray-900">{property.parkingSpaces}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Description */}
-        <div className="prose prose-gray max-w-none">
-          <h2 className="font-display text-2xl font-bold text-gray-900 mb-4">Descrição</h2>
-          <p className="text-gray-700 leading-relaxed whitespace-pre-line">{property.description}</p>
-        </div>
-
-        {/* Features */}
-        {property.features.length > 0 && (
-          <div>
-            <h2 className="font-display text-2xl font-bold text-gray-900 mb-4">Comodidades</h2>
-            <div className="flex flex-wrap gap-2">
-              {property.features.map((feature) => (
-                <FeatureBadge key={feature} feature={feature} variant="outline" size="md" />
+          {/* Abas */}
+          <section ref={tabsRef} className="scroll-mt-24" aria-label="Detalhes do imóvel">
+            <div
+              role="tablist"
+              aria-label="Seções do imóvel"
+              onKeyDown={onTabKey}
+              className="flex gap-1 overflow-x-auto border-b border-gray-200"
+            >
+              {TABS.map((t) => (
+                <button
+                  key={t.id}
+                  id={`tab-${t.id}`}
+                  role="tab"
+                  type="button"
+                  aria-selected={tab === t.id}
+                  aria-controls={`panel-${t.id}`}
+                  tabIndex={tab === t.id ? 0 : -1}
+                  onClick={() => setTab(t.id)}
+                  className={cn(
+                    '-mb-px flex-shrink-0 border-b-2 px-4 py-3 text-sm font-semibold transition-colors',
+                    tab === t.id
+                      ? 'border-gold text-gray-900'
+                      : 'border-transparent text-gray-500 hover:text-gray-800'
+                  )}
+                >
+                  {t.label}
+                </button>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* Financial details */}
-        {(property.condoFee || property.iptu) && (
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-            <h2 className="font-display text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary-600" aria-hidden="true" />
-              Custos mensais
-            </h2>
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {property.condoFee && (
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-100">
-                  <dt className="text-gray-600 flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-primary-600" aria-hidden="true" />
-                    </div>
-                    Condomínio
-                  </dt>
-                  <dd className="font-semibold text-gray-900">{formatCurrency(property.condoFee)}/mês</dd>
-                </div>
-              )}
-              {property.iptu && (
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-100">
-                  <dt className="text-gray-600 flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center">
-                      <Calendar className="w-4 h-4 text-primary-600" aria-hidden="true" />
-                    </div>
-                    IPTU
-                  </dt>
-                  <dd className="font-semibold text-gray-900">{formatCurrency(property.iptu)}/mês</dd>
-                </div>
-              )}
-              <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-100 sm:col-span-2">
-                <dt className="text-gray-600 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center">
-                    <Square className="w-4 h-4 text-primary-600" aria-hidden="true" />
-                  </div>
-                  Preço por m²
-                </dt>
-                <dd className="font-semibold text-gray-900">{formatCurrency(Math.round(property.price / property.area))}/m²</dd>
-              </div>
-            </dl>
-          </div>
-        )}
+            <div className="pt-6" role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+              {tab === 'sobre' && (
+                <div className="space-y-8">
+                  <p className="whitespace-pre-line leading-relaxed text-gray-700">{property.description}</p>
 
-        {/* Agent info */}
-        {property.agent && (
-          <div className="rounded-xl border border-gray-200 bg-white p-6">
-            <h2 className="font-display text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Check className="w-5 h-5 text-primary-600" aria-hidden="true" />
-              Corretor responsável
-            </h2>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center text-primary-600">
-                  {property.agent.avatar ? (
-                    <Image src={property.agent.avatar} alt={property.agent.name} fill className="rounded-full" />
-                  ) : (
-                    property.agent.name.charAt(0).toUpperCase()
+                  {property.features.length > 0 && (
+                    <div>
+                      <h3 className="mb-3 font-display text-xl font-bold text-gray-900">Destaques</h3>
+                      <ul className="grid gap-2 sm:grid-cols-2">
+                        {property.features.slice(0, 6).map((f) => (
+                          <li key={f} className="flex items-center gap-2 text-gray-700">
+                            <Check className="h-4 w-4 flex-shrink-0 text-emerald-600" aria-hidden="true" />
+                            {PROPERTY_FEATURE_LABELS[f]}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">{property.agent.name}</p>
-                  <p className="text-sm text-gray-500">CRECI: {property.agent.creci}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={`tel:${property.agent.phone}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-100 text-primary-700 hover:bg-primary-200 transition-colors"
-                >
-                  <Phone className="w-4 h-4" aria-hidden="true" />
-                  {property.agent.phone}
-                </a>
-                <a
-                  href={`mailto:${property.agent.email}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  <Mail className="w-4 h-4" aria-hidden="true" />
-                  {property.agent.email}
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Contact CTA */}
-        <div className="rounded-2xl bg-gradient-to-r from-primary-600 to-primary-800 p-8 lg:p-12 text-white">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-2xl lg:text-3xl font-bold mb-3">Gostou deste imóvel?</h2>
-            <p className="text-primary-100 mb-6 max-w-lg mx-auto">
-              Agende uma visita sem compromisso ou tire suas dúvidas com nossos especialistas. Estamos prontos para te ajudar.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                variant="gold"
-                size="lg"
-                className="w-full sm:w-auto min-w-[200px]"
-                onClick={() => setShowContactForm(true)}
-              >
+                  <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
+                    <h3 className="mb-4 flex items-center gap-2 font-display text-xl font-bold text-gray-900">
+                      <Calendar className="h-5 w-5 text-primary-600" aria-hidden="true" />
+                      Valores
+                    </h3>
+                    <dl className="grid gap-3 sm:grid-cols-2">
+                      <Row label={property.status === 'rent' ? 'Aluguel' : 'Preço'} value={formatCurrency(property.price)} />
+                      <Row label="Preço por m²" value={`${formatCurrency(perSqm)}/m²`} />
+                      {property.condoFee ? <Row label="Condomínio" value={`${formatCurrency(property.condoFee)}/mês`} /> : null}
+                      {property.iptu ? <Row label="IPTU" value={`${formatCurrency(property.iptu)}/mês`} /> : null}
+                      {monthly ? <Row label="Total mensal estimado" value={formatCurrency(monthly)} strong /> : null}
+                    </dl>
+                  </div>
+                </div>
+              )}
+
+              {tab === 'caracteristicas' && (
+                <div>
+                  {property.features.length === 0 ? (
+                    <p className="text-gray-500">Sem comodidades cadastradas.</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {property.features.map((f) => (
+                        <FeatureBadge key={f} feature={f} variant="outline" size="md" />
+                      ))}
+                    </div>
+                  )}
+                  <dl className="mt-6 grid gap-3 sm:grid-cols-2">
+                    <Row label="Tipo" value={PROPERTY_TYPE_LABELS[property.type]} />
+                    <Row label="Finalidade" value={PROPERTY_STATUS_LABELS[property.status]} />
+                    <Row label="Área" value={`${property.area} m²`} />
+                    <Row label="CEP" value={property.address.zipCode} />
+                  </dl>
+                </div>
+              )}
+
+              {tab === 'plantas' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">
+                    Modelo 3D <strong>ilustrativo</strong>, que mostra como a visualização de planta funciona. Não representa
+                    exatamente a planta deste imóvel.
+                  </p>
+                  <House3DLazy />
+                </div>
+              )}
+
+              {tab === 'local' && <PropertyMap property={property} />}
+
+              {tab === 'docs' && (
+                <div>
+                  <p className="mb-4 flex items-center gap-2 text-gray-700">
+                    <FileCheck2 className="h-5 w-5 text-primary-600" aria-hidden="true" />
+                    Documentos que conferimos antes de uma negociação:
+                  </p>
+                  <ul className="space-y-2">
+                    {DOCS.map((d) => (
+                      <li key={d} className="flex items-start gap-2 rounded-xl border border-gray-100 bg-gray-50 p-3 text-gray-700">
+                        <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600" aria-hidden="true" />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-4 text-xs text-gray-500">
+                    A lista é de referência e pode variar conforme o imóvel e o tipo de negócio. Fale com um corretor para
+                    o checklist completo.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+
+        {/* ---------- Barra lateral ---------- */}
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          <div className="space-y-5 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div>
+              <p className="text-sm text-gray-500">{property.status === 'rent' ? 'Aluguel' : 'Valor de venda'}</p>
+              <p className="font-display text-4xl font-bold text-gray-900">
+                {formatCurrency(property.price)}
+                {property.status === 'rent' && <span className="text-base font-normal text-gray-500"> /mês</span>}
+              </p>
+              <p className="mt-1 text-sm text-gray-500">{formatCurrency(perSqm)} por m²</p>
+              {(property.condoFee || property.iptu) && (
+                <p className="mt-2 text-sm text-gray-600">
+                  {property.condoFee ? `Condomínio ${formatCurrency(property.condoFee)}` : ''}
+                  {property.condoFee && property.iptu ? ' · ' : ''}
+                  {property.iptu ? `IPTU ${formatCurrency(property.iptu)}` : ''}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2.5">
+              <Button variant="gold" size="lg" className="w-full" onClick={() => setShowContact(true)}>
                 Agendar visita
               </Button>
               <a
-                href={`tel:+551130000000`}
-                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto min-w-[200px] px-8 py-4 rounded-xl border-2 border-white/40 text-white font-semibold hover:bg-white/10 transition-colors"
+                href={whatsappLink(waMessage)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 text-base font-semibold text-white transition-colors hover:bg-[#1ebe5a]"
               >
-                <Phone className="w-5 h-5" aria-hidden="true" />
-                (11) 3000-0000
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                Chamar no WhatsApp
+              </a>
+              <a
+                href={PHONE_HREF}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-300 px-6 text-base font-semibold text-gray-800 transition-colors hover:bg-gray-50"
+              >
+                <Phone className="h-5 w-5" aria-hidden="true" />
+                {PHONE_DISPLAY}
               </a>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Similar Properties */}
-      {similarProperties.length > 0 && (
-        <section>
-          <h2 className="font-display text-2xl lg:text-3xl font-bold text-gray-900 mb-8">Imóveis semelhantes</h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {similarProperties.map((prop, i) => (
-              <Link key={prop.id} href={`/properties/${prop.id}`} className="group">
-                <Card className="overflow-hidden h-full hover:shadow-elevation-3 transition-all duration-300">
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <Image
-                      src={prop.mainImage}
-                      alt={prop.title}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      placeholder="blur"
-                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-                    />
-                    <div className="absolute top-3 left-3 flex flex-col gap-2">
-                      <StatusBadge status={prop.status === 'sale' ? 'sale' : 'rent'} size="sm" />
-                      <Badge variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm">
-                        {PROPERTY_TYPE_LABELS[prop.type]}
-                      </Badge>
-                    </div>
-                    {prop.featured && (
-                      <div className="absolute top-3 right-3">
-                        <Badge variant="gold" size="sm" dot>Destaque</Badge>
-                      </div>
-                    )}
+            <PropertyActions property={property} variant="bar" className="border-t border-gray-100 pt-4" />
+
+            {property.agent && (
+              <div className="border-t border-gray-100 pt-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Corretor responsável</p>
+                <div className="flex items-center gap-3">
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-primary-100 text-lg font-bold text-primary-700">
+                    {property.agent.name.charAt(0).toUpperCase()}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-gray-900">{property.agent.name}</p>
+                    <p className="text-xs text-gray-500">CRECI {property.agent.creci}</p>
                   </div>
-                  <CardContent className="p-4 pb-0">
-                    <h3 className="font-semibold text-gray-900 line-clamp-1 group-hover:text-primary-600 transition-colors">
-                      {prop.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
-                      {prop.address.neighborhood}, {prop.address.city}
-                    </p>
-                    <dl className="flex items-center justify-between text-sm text-gray-600 mt-4">
-                      <div className="flex items-center gap-1">
-                        <Square className="w-4 h-4" aria-hidden="true" />
-                        <span>{prop.area}m²</span>
-                      </div>
-                      {prop.bedrooms > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Bed className="w-4 h-4" aria-hidden="true" />
-                          <span>{prop.bedrooms}</span>
-                        </div>
-                      )}
-                      {prop.bathrooms > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Bath className="w-4 h-4" aria-hidden="true" />
-                          <span>{prop.bathrooms}</span>
-                        </div>
-                      )}
-                      {prop.parkingSpaces > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Car className="w-4 h-4" aria-hidden="true" />
-                          <span>{prop.parkingSpaces}</span>
-                        </div>
-                      )}
-                    </dl>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0 border-t border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xl font-bold text-gray-900">{formatCurrency(prop.price)}</p>
-                        {prop.status === 'rent' && <p className="text-xs text-gray-500">/mês</p>}
-                      </div>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </Link>
-            ))}
+                </div>
+              </div>
+            )}
           </div>
-        </section>
+        </aside>
+      </div>
+
+      {/* Alerta e semelhantes */}
+      <div className="mt-16 space-y-16">
+        {similarProperties.length > 0 && (
+          <section>
+            <h2 className="mb-8 font-display text-2xl font-bold text-gray-900 lg:text-3xl">Imóveis semelhantes</h2>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+              {similarProperties.map((p) => (
+                <PropertyCard key={p.id} property={p} variant="elevated" />
+              ))}
+            </div>
+          </section>
+        )}
+        <AlertForm defaultNeighborhood={property.address.neighborhood} />
+      </div>
+
+      {/* Barra fixa no celular */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-gray-200 bg-white/95 p-3 backdrop-blur-xl lg:hidden">
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-bold text-gray-900">{formatCurrency(property.price)}</p>
+          <p className="truncate text-xs text-gray-500">{property.title}</p>
+        </div>
+        <a
+          href={whatsappLink(waMessage)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Chamar no WhatsApp"
+          className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-[#25D366] text-white"
+        >
+          <MessageCircle className="h-5 w-5" aria-hidden="true" />
+        </a>
+        <Button variant="gold" onClick={() => setShowContact(true)}>
+          Agendar visita
+        </Button>
+      </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="fixed inset-0 z-[100] bg-black/95" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+          <button
+            type="button"
+            onClick={() => setLightbox(false)}
+            aria-label="Fechar"
+            className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20"
+          >
+            <X className="h-6 w-6" aria-hidden="true" />
+          </button>
+          <div className="absolute inset-0 m-4 sm:m-12">
+            <Image src={images[index]} alt={`${property.title} - foto ${index + 1}`} fill sizes="100vw" className="object-contain" />
+          </div>
+          {total > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={prev}
+                aria-label="Foto anterior"
+                className="absolute left-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronLeft className="h-7 w-7" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={next}
+                aria-label="Próxima foto"
+                className="absolute right-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronRight className="h-7 w-7" aria-hidden="true" />
+              </button>
+            </>
+          )}
+          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-1.5 text-sm text-white">
+            {index + 1} / {total}
+          </p>
+        </div>
       )}
 
-      {/* Contact Form Modal/Section */}
-      {showContactForm && (
-        <section className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-fade-in">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl animate-slide-up">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between rounded-t-2xl z-10">
-              <h2 className="font-display text-xl font-bold text-gray-900">Entre em contato</h2>
+      {/* Formulário de visita */}
+      {showContact && (
+        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="Agendar visita">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white p-4">
+              <h2 className="font-display text-xl font-bold text-gray-900">Agendar visita</h2>
               <button
-                onClick={() => setShowContactForm(false)}
-                className="w-10 h-10 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors flex items-center justify-center"
+                type="button"
+                onClick={() => setShowContact(false)}
                 aria-label="Fechar formulário"
+                className="grid h-10 w-10 place-items-center rounded-xl text-gray-500 hover:bg-gray-100"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
             <div className="p-6">
               <ContactForm property={property.title} />
             </div>
           </div>
-        </section>
+        </div>
       )}
+    </div>
+  )
+}
+
+function Row({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-white p-3.5">
+      <dt className="text-sm text-gray-600">{label}</dt>
+      <dd className={cn('text-sm text-gray-900', strong ? 'font-bold' : 'font-semibold')}>{value}</dd>
     </div>
   )
 }

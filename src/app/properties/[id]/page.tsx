@@ -67,10 +67,9 @@ export default async function PropertyDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
-      <PropertyDetailClient
-        property={property}
-        similarProperties={similarProperties}
-      />
+      <div className="container mx-auto px-4 py-8 lg:py-12">
+        <PropertyDetailClient property={property} similarProperties={similarProperties} />
+      </div>
     </PageShell>
   )
 }

@@ -6,7 +6,8 @@ import { Property } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import { Card, CardContent, CardFooter, CardElevated } from '@/components/ui/card'
 import { Badge, StatusBadge, FeatureBadge } from '@/components/ui/badge'
-import { MapPin, Bed, Bath, Car, Square, ArrowRight, Heart, Share2, Scale } from 'lucide-react'
+import { MapPin, Bed, Bath, Car, Square, ArrowRight } from 'lucide-react'
+import { PropertyActions } from '@/components/PropertyActions'
 import { PROPERTY_TYPE_LABELS, PROPERTY_FEATURE_LABELS } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -46,36 +47,18 @@ export function PropertyCard({ property, priority = false, variant = 'default' }
             <Badge variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm">
               {typeLabel}
             </Badge>
-          </div>
-          {property.featured && (
-            <div className="absolute top-3 right-3">
+            {property.featured && (
               <Badge variant="gold" size="sm" dot>
                 Destaque
               </Badge>
-            </div>
-          )}
-
-          {/* Quick actions on hover */}
-          <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-2 group-hover:translate-x-0">
-            <button
-              className="w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-error hover:bg-error/10 transition-all duration-200 shadow-sm"
-              aria-label={`Salvar ${property.title}`}
-            >
-              <Heart className="w-4 h-4" aria-hidden="true" />
-            </button>
-            <button
-              className="w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 transition-all duration-200 shadow-sm"
-              aria-label={`Compartilhar ${property.title}`}
-            >
-              <Share2 className="w-4 h-4" aria-hidden="true" />
-            </button>
-            <button
-              className="w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 transition-all duration-200 shadow-sm"
-              aria-label={`Comparar ${property.title}`}
-            >
-              <Scale className="w-4 h-4" aria-hidden="true" />
-            </button>
+            )}
           </div>
+
+          {/* Ações rápidas: sempre visíveis no toque, no hover no desktop */}
+          <PropertyActions
+            property={property}
+            className="absolute right-3 top-3 md:translate-x-2 md:opacity-0 md:transition-all md:duration-300 md:group-hover:translate-x-0 md:group-hover:opacity-100 md:group-focus-within:translate-x-0 md:group-focus-within:opacity-100"
+          />
         </div>
 
         <CardContent className="p-4 pb-0">

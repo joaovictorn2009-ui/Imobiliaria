@@ -23,6 +23,7 @@ import { createTextures, disposeTextures, tbox, type TextureSet } from './textur
 
 const LIFT_HIDDEN = 18
 const FOG = '#2b3556'
+const FOG_NIGHT = '#070b16'
 
 function liftTargets(mode: Mode, planFloor: LevelId) {
   if (mode === 'explode') return { ground: 0, upper: 5, roof: 10 }
@@ -276,12 +277,14 @@ const LIGHTS: Record<LevelId, [number, number, number][]> = {
 }
 
 function Level({
+  night,
   level,
   assets,
   showLabels,
   selected,
   onSelect,
 }: {
+  night: boolean
   level: LevelId
   assets: Assets
   showLabels: boolean
@@ -349,7 +352,7 @@ function Level({
       ))}
 
       {LIGHTS[level].map((p, i) => (
-        <pointLight key={i} position={p} color="#ffcf9a" intensity={14} distance={9} decay={2} />
+        <pointLight key={i} position={p} color="#ffcf9a" intensity={night ? 48 : 14} distance={night ? 11 : 9} decay={2} />
       ))}
 
       {level === 'ground' && <Stairs mats={mats} />}
@@ -509,7 +512,7 @@ function Garden({ assets }: { assets: Assets }) {
 }
 
 /** Céu em degradê (um único draw call), com o horizonte igual à cor da névoa. */
-function Sky() {
+function Sky({ night }: { night: boolean }) {
   const uniforms = useMemo(
     () => ({
       uHorizon: { value: new THREE.Color(FOG) },
@@ -518,6 +521,11 @@ function Sky() {
     }),
     []
   )
+  useEffect(() => {
+    uniforms.uHorizon.value.set(night ? FOG_NIGHT : FOG)
+    uniforms.uMid.value.set(night ? '#0b1430' : '#2a4375')
+    uniforms.uTop.value.set(night ? '#02040a' : '#070d22')
+  }, [night, uniforms])
   return (
     <mesh renderOrder={-1}>
       <sphereGeometry args={[400, 24, 16]} />
@@ -578,22 +586,29 @@ export interface HouseSceneProps {
   onSelect: (id: string) => void
   zoomOn: boolean
   autoRotate: boolean
+  night: boolean
   onPerf: (level: 'low' | 'high') => void
 }
 
-export function HouseScene({ mode, planFloor, selected, onSelect, zoomOn, autoRotate, onPerf }: HouseSceneProps) {
+export function HouseScene({ mode, planFloor, selected, onSelect, zoomOn, autoRotate, night, onPerf }: HouseSceneProps) {
   const assets = useAssets()
+  useEffect(() => {
+    const glass = assets.mats.glass as THREE.MeshStandardMaterial
+    glass.emissive.set(night ? '#ffcf9a' : '#000000')
+    glass.emissiveIntensity = night ? 0.5 : 0
+    glass.needsUpdate = true
+  }, [night, assets])
   const lifts = liftTargets(mode, planFloor)
   const labelsFor = (level: LevelId) => mode === 'explode' || (mode === 'plan' && planFloor === level)
 
   return (
     <>
       <PerformanceMonitor onDecline={() => onPerf('low')} onIncline={() => onPerf('high')} />
-      <Sky />
-      <fog attach="fog" args={[FOG, 55, 150]} />
+      <Sky night={night} />
+      <fog attach="fog" args={[night ? FOG_NIGHT : FOG, 55, 150]} />
 
       {/* reflexos de ambiente sem baixar nenhuma imagem (apenas painéis de luz) */}
-      <Environment resolution={128} frames={1} environmentIntensity={0.55}>
+      <Environment resolution={128} frames={1} environmentIntensity={night ? 0.14 : 0.55}>
         <color attach="background" args={['#1b2540']} />
         <Lightformer form="rect" intensity={3} color="#ffe2b8" position={[6, 9, 5]} scale={[12, 7, 1]} />
         <Lightformer
@@ -607,11 +622,11 @@ export function HouseScene({ mode, planFloor, selected, onSelect, zoomOn, autoRo
         <Lightformer form="rect" intensity={0.9} color="#ffd9a8" position={[0, 3, 12]} scale={[16, 4, 1]} />
       </Environment>
 
-      <hemisphereLight args={['#cfe3ff', '#3b3a30', 0.45]} />
+      <hemisphereLight args={[night ? '#5f7bd8' : '#cfe3ff', night ? '#10131c' : '#3b3a30', night ? 0.16 : 0.45]} />
       <directionalLight
         position={[16, 24, 12]}
-        intensity={2.6}
-        color="#ffe2b8"
+        intensity={night ? 0.35 : 2.6}
+        color={night ? '#8aa4ff' : '#ffe2b8'}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-22}
@@ -628,10 +643,10 @@ export function HouseScene({ mode, planFloor, selected, onSelect, zoomOn, autoRo
       <group position={[-HOUSE_W / 2, 0, -HOUSE_D / 2]}>
         <Garden assets={assets} />
         <Lift base={0} target={lifts.ground}>
-          <Level level="ground" assets={assets} showLabels={labelsFor('ground')} selected={selected} onSelect={onSelect} />
+          <Level night={night} level="ground" assets={assets} showLabels={labelsFor('ground')} selected={selected} onSelect={onSelect} />
         </Lift>
         <Lift base={FLOOR_H} target={lifts.upper}>
-          <Level level="upper" assets={assets} showLabels={labelsFor('upper')} selected={selected} onSelect={onSelect} />
+          <Level night={night} level="upper" assets={assets} showLabels={labelsFor('upper')} selected={selected} onSelect={onSelect} />
         </Lift>
         <Lift base={FLOOR_H * 2} target={lifts.roof}>
           <Roof mats={assets.mats} />

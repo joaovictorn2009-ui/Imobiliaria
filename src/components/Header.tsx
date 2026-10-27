@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Menu, X, Search, Phone, Mail, User, LogIn, UserPlus } from 'lucide-react'
+import { Menu, X, Search, Phone, Mail, User, LogIn, UserPlus, Heart } from 'lucide-react'
+import { usePrefs } from '@/components/PrefsProvider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -46,9 +47,31 @@ function StyledLink({
 const navLinks = [
   { href: '/', label: 'Início' },
   { href: '/properties', label: 'Imóveis' },
+  { href: '/bairros', label: 'Bairros' },
+  { href: '/blog', label: 'Guias' },
   { href: '/about', label: 'Sobre nós' },
   { href: '/contact', label: 'Contato' },
 ]
+
+function FavoritesLink({ className, onClick, withLabel = false }: { className?: string; onClick?: () => void; withLabel?: boolean }) {
+  const { favorites } = usePrefs()
+  return (
+    <Link
+      href="/favorites"
+      onClick={onClick}
+      aria-label={`Favoritos (${favorites.length})`}
+      className={cn('relative inline-flex items-center gap-2 rounded-xl p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-rose-600', className)}
+    >
+      <Heart className="h-5 w-5" aria-hidden="true" />
+      {withLabel && <span className="font-medium">Favoritos</span>}
+      {favorites.length > 0 && (
+        <span className={cn('grid h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1 text-[11px] font-bold text-white', withLabel ? 'ml-auto' : 'absolute -right-0.5 -top-0.5')}>
+          {favorites.length}
+        </span>
+      )}
+    </Link>
+  )
+}
 
 export function Header() {
   const router = useRouter()
@@ -115,6 +138,7 @@ export function Header() {
                 <Phone className="w-4 h-4" aria-hidden="true" />
                 (11) 3000-0000
               </StyledLink>
+              <FavoritesLink />
               <StyledLink href="/contact" variant="outline" size="sm">
                 Fale conosco
               </StyledLink>
@@ -128,7 +152,8 @@ export function Header() {
               </StyledLink>
             </div>
 
-            <div className="flex md:hidden items-center gap-2">
+            <div className="flex md:hidden items-center gap-1">
+              <FavoritesLink />
               <Button variant="ghost" size="icon" onClick={() => setSearchOpen((o) => !o)} aria-label="Buscar">
                 <Search className="w-5 h-5" />
               </Button>

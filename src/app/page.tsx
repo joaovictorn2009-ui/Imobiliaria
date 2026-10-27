@@ -8,6 +8,7 @@ import { Reveal } from '@/components/Reveal'
 import { CountUp } from '@/components/CountUp'
 import { ScrollProgress } from '@/components/ScrollProgress'
 import { House3DLazy } from '@/components/3d'
+import { BlogTeasers, NeighborhoodsSection } from '@/components/HomeInsights'
 import { HomeNewsletter } from '@/components/HomeNewsletter'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -107,7 +108,7 @@ export default function HomePage() {
       />
       <ScrollProgress />
       <Header />
-      <main className="flex-1">
+      <main id="conteudo" className="flex-1">
         {/* Hero Section */}
         <section className="relative isolate overflow-hidden bg-primary-950 text-white">
           {/* Foto da cidade como plano de fundo, com camadas escuras para o texto ficar legível */}
@@ -290,7 +291,7 @@ export default function HomePage() {
         </section>
 
         {/* 3D Explorer Section */}
-        <section id="3d-explorer" className="relative bg-gray-950 py-16 lg:py-24">
+        <section id="3d-explorer" className="relative overflow-hidden bg-gray-950 py-16 lg:py-24">
           <div className="animate-float absolute -left-24 top-10 -z-10 h-96 w-96 rounded-full bg-primary-500/20 blur-3xl" />
           <div className="animate-float-slow absolute -right-20 bottom-0 -z-10 h-[28rem] w-[28rem] rounded-full bg-gold/15 blur-3xl" />
           <Reveal className="container mx-auto px-4">
@@ -309,7 +310,9 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        {/* Testimonials Section (placeholder for future) */}
+        <NeighborhoodsSection />
+
+        {/* Testimonials Section */}
         <section className="bg-white py-16 lg:py-24">
           <div className="container mx-auto px-4">
             <Reveal className="mx-auto mb-16 text-center max-w-2xl">
@@ -320,6 +323,7 @@ export default function HomePage() {
               <p className="mx-auto max-w-2xl text-lg text-gray-600">
                 Mais de 3.000 famílias confiaram na Imobiliária Prime para realizar seus sonhos.
               </p>
+              <p className="mt-2 text-xs text-gray-400">Depoimentos ilustrativos, até a publicação de avaliações reais.</p>
             </Reveal>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -364,6 +368,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <BlogTeasers />
 
         {/* Newsletter CTA */}
         <section className="bg-primary-900 py-16 lg:py-24 relative overflow-hidden">

@@ -1,5 +1,7 @@
 import { MetadataRoute } from 'next'
 import { mockProperties } from '@/data/mockProperties'
+import { getNeighborhoods } from '@/data/neighborhoods'
+import { POSTS } from '@/data/posts'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://imobiliariaprime.com.br'
 
@@ -9,6 +11,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/properties',
     '/about',
     '/contact',
+    '/bairros',
+    '/faq',
+    '/blog',
     '/login',
     '/register',
     '/terms',
@@ -27,5 +32,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }))
 
-  return [...staticRoutes, ...propertyRoutes]
+  const neighborhoodRoutes = getNeighborhoods().map((n) => ({
+    url: `${BASE_URL}/bairros/${n.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }))
+
+  const postRoutes = POSTS.map((p) => ({
+    url: `${BASE_URL}/blog/${p.slug}`,
+    lastModified: new Date(`${p.date}T12:00:00`),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }))
+
+  return [...staticRoutes, ...propertyRoutes, ...neighborhoodRoutes, ...postRoutes]
 }

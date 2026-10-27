@@ -13,7 +13,7 @@ export function PageShell({ title, subtitle, children, className }: PageShellPro
   return (
     <div className={cn("min-h-screen flex flex-col", className)}>
       <Header />
-      <main className="flex-1">
+      <main id="conteudo" className="flex-1">
         {title && (
           <section className="bg-gradient-to-br from-primary-600 to-primary-900 text-white py-12 lg:py-16">
             <div className="container mx-auto px-4">

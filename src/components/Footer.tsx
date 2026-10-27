@@ -8,7 +8,7 @@ const footerLinks = {
   empresa: [
     { href: '/about', label: 'Sobre nós' },
     { href: '/contact', label: 'Fale conosco' },
-    { href: '/careers', label: 'Trabalhe conosco' },
+    { href: '/bairros', label: 'Guia de bairros' },
   ],
   imoveis: [
     { href: '/properties?type=apartment', label: 'Apartamentos' },
@@ -23,10 +23,10 @@ const footerLinks = {
     { href: '/faq', label: 'Perguntas frequentes' },
   ],
   recursos: [
-    { href: '/guides/buying', label: 'Guia de compra' },
-    { href: '/guides/renting', label: 'Guia de aluguel' },
-    { href: '/guides/financing', label: 'Financiamento' },
-    { href: '/market-report', label: 'Relatório de mercado' },
+    { href: '/blog/como-financiar-um-imovel', label: 'Como financiar' },
+    { href: '/blog/documentos-para-comprar-imovel', label: 'Documentos para comprar' },
+    { href: '/blog/como-escolher-o-bairro', label: 'Como escolher o bairro' },
+    { href: '/favorites', label: 'Meus favoritos' },
   ],
 }
 

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
+import { PROPERTY_FEATURE_LABELS } from '@/types'
 
 const badgeVariants = cva(
   'inline-flex items-center justify-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all duration-200 ease-spring',
@@ -112,12 +113,12 @@ const featureIcons: Record<string, React.ReactNode> = {
 }
 
 function FeatureBadge({ feature, label, variant = 'secondary', size = 'default', className }: FeatureBadgeProps) {
-  const displayLabel = label || feature
+  const displayLabel = label || (PROPERTY_FEATURE_LABELS as Record<string, string>)[feature] || feature
   const icon = featureIcons[feature]
   return (
     <Badge variant={variant} size={size} className={cn('gap-1.5', className)}>
       {icon}
-      <span className="hidden sm:inline">{displayLabel}</span>
+      <span>{displayLabel}</span>
     </Badge>
   )
 }

@@ -353,3 +353,68 @@
     --ring: 0 0% 100%;
   }
 }
+/* ---- Controle deslizante duplo (preço e área) ---- */
+.dual-range input[type='range'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.dual-range input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid #2a5499;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+  cursor: grab;
+}
+.dual-range input[type='range']::-moz-range-thumb {
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid #2a5499;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+  cursor: grab;
+}
+.dual-range input[type='range']:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid #d4a843;
+  outline-offset: 2px;
+}
+.dual-range input[type='range']::-webkit-slider-runnable-track {
+  background: transparent;
+}
+.dual-range input[type='range']::-moz-range-track {
+  background: transparent;
+}
+
+/* ---- Mapa (Leaflet) ---- */
+.price-pin {
+  background: #0b1d3a;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 9999px;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+  transform: translate(-50%, -100%);
+}
+.price-pin.is-active {
+  background: #d4a843;
+  color: #1a1408;
+}
+.leaflet-container {
+  font-family: inherit;
+  z-index: 0;
+}
