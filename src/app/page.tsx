@@ -118,7 +118,7 @@ export default function HomePage() {
             fill
             priority
             sizes="100vw"
-            className="-z-20 object-cover object-[50%_35%]"
+            className="-z-20 object-cover object-[50%_55%]"
           />
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary-950/90 via-primary-950/60 to-primary-950/15" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-t from-primary-950 via-transparent to-primary-950/30" />
@@ -190,8 +190,6 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-
-          <p className="absolute bottom-3 right-4 text-[11px] text-white/50">Foto: Leonardo Cruz</p>
 
           <a
             href="#stats"
