@@ -7,6 +7,7 @@ import { Reveal } from '@/components/Reveal'
 import { CountUp } from '@/components/CountUp'
 import { ScrollProgress } from '@/components/ScrollProgress'
 import { House3DLazy } from '@/components/3d'
+import { HomeNewsletter } from '@/components/HomeNewsletter'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -372,18 +373,7 @@ export default function HomePage() {
               </Reveal>
               <Reveal delay={300}>
                 <div className="max-w-md mx-auto">
-                  <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
-                    <input
-                      type="email"
-                      placeholder="Seu e-mail"
-                      required
-                      className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                      aria-label="E-mail para newsletter"
-                    />
-                    <Button variant="gold" size="lg" className="whitespace-nowrap">
-                      Cadastrar
-                    </Button>
-                  </form>
+                  <HomeNewsletter />
                   <p className="text-gray-500 text-xs mt-3 text-center">
                     Ao cadastrar, você concorda com nossa Política de Privacidade. Sem spam.
                   </p>
