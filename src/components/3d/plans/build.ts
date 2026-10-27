@@ -280,7 +280,8 @@ export function buildPlan(spec: PlanSpec): BuiltPlan {
       const w = (q.x1 - q.x0) / U + ox0 + ox1
       const d = (q.z1 - q.z0) / U + oz0 + oz1
       roofs.push({ x, z, w, d })
-      slabs.push({ x: q.x0 / U - 0.14, z: q.z0 / U - 0.14, w: (q.x1 - q.x0) / U + 0.28, d: (q.z1 - q.z0) / U + 0.28 })
+      // laje sem folga: lajes vizinhas não se sobrepõem (evita cintilação); as paredes cobrem a borda
+      slabs.push({ x: q.x0 / U, z: q.z0 / U, w: (q.x1 - q.x0) / U, d: (q.z1 - q.z0) / U })
       // pilares nos cantos de lados abertos
       const open = room.open ?? []
       if (open.length) {

@@ -236,8 +236,8 @@ function Outdoors({ plan, assets, isPlan, night }: { plan: BuiltPlan; assets: Ca
           <Furniture items={loungers} assets={assets} isPlan={false} baseY={-0.19} />
 
           {/* rua, calçada e acessos */}
-          <TexBox x={cx} y={-0.3} z={streetZ + 3.5} w={320} h={0.04} d={7} tile={4} cast={false} material={real.asphalt} />
-          <TexBox x={cx} y={-0.28} z={streetZ - 0.9} w={320} h={0.04} d={1.8} tile={2.4} cast={false} material={real.pavers} />
+          <TexBox x={cx} y={-0.305} z={streetZ + 3.5} w={320} h={0.03} d={7} tile={4} cast={false} material={real.asphalt} />
+          <TexBox x={cx} y={-0.24} z={streetZ - 0.9} w={320} h={0.06} d={1.8} tile={2.4} cast={false} material={real.pavers} />
           {garage && (
             <TexBox
               x={garage.rects[0].x + garage.rects[0].w / 2}
@@ -386,8 +386,8 @@ export function CasaScene({ plan, mode, selected, onSelect, night, zoomOn, autoR
       <PerformanceMonitor onDecline={() => onPerf('low')} onIncline={() => onPerf('high')} />
 
       {/* câmeras: perspectiva para a casa, ortográfica para a planta técnica */}
-      <PerspectiveCamera makeDefault={!isPlan} fov={38} near={0.1} far={900} position={[cx + R * 0.58, R * 0.34, cz + R * 1.12]} />
-      <OrthographicCamera makeDefault={isPlan} position={[cx + planOffsetX, 140, cz + planOffsetZ + 0.01]} zoom={zoomFit} near={0.1} far={500} />
+      <PerspectiveCamera makeDefault={!isPlan} fov={38} near={1} far={700} position={[cx + R * 0.58, R * 0.34, cz + R * 1.12]} />
+      <OrthographicCamera makeDefault={isPlan} position={[cx + planOffsetX, 140, cz + planOffsetZ + 0.01]} zoom={zoomFit} near={1} far={400} />
 
       {isPlan ? (
         <color attach="background" args={['#f6f5f1']} />
