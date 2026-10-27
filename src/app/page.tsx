@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowDown, ArrowRight, ShieldCheck, Users, Key, TrendingUp, MapPin, Award } from 'lucide-react'
 import { PropertyExplorer } from '@/components/PropertyExplorer'
@@ -109,11 +110,21 @@ export default function HomePage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative isolate overflow-hidden bg-primary-950 text-white">
-          <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary-900 via-primary-950 to-black" />
-          <div className="animate-float absolute -left-24 top-10 -z-10 h-96 w-96 rounded-full bg-primary-500/30 blur-3xl" />
-          <div className="animate-float-slow absolute -right-20 bottom-0 -z-10 h-[28rem] w-[28rem] rounded-full bg-gold/25 blur-3xl" />
+          {/* Foto da cidade como plano de fundo, com camadas escuras para o texto ficar legível */}
+          <Image
+            src="/images/hero-cidade.webp"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="-z-20 scale-105 object-cover object-[50%_35%] blur-[1.5px]"
+          />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary-950/95 via-primary-950/75 to-primary-950/35" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-primary-950 via-transparent to-primary-950/40" />
+          <div className="animate-float absolute -left-24 top-10 -z-10 h-96 w-96 rounded-full bg-primary-500/25 blur-3xl" />
+          <div className="animate-float-slow absolute -right-20 bottom-0 -z-10 h-[28rem] w-[28rem] rounded-full bg-gold/20 blur-3xl" />
           <div
-            className="absolute inset-0 -z-10 opacity-[0.07]"
+            className="absolute inset-0 -z-10 opacity-[0.05]"
             style={{
               backgroundImage:
                 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
@@ -178,6 +189,8 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+
+          <p className="absolute bottom-3 right-4 text-[11px] text-white/50">Foto: Leonardo Cruz</p>
 
           <a
             href="#stats"
