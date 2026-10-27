@@ -118,10 +118,10 @@ export default function HomePage() {
             fill
             priority
             sizes="100vw"
-            className="-z-20 scale-105 object-cover object-[50%_35%] blur-[1.5px]"
+            className="-z-20 object-cover object-[50%_35%]"
           />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary-950/95 via-primary-950/75 to-primary-950/35" />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-primary-950 via-transparent to-primary-950/40" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary-950/90 via-primary-950/60 to-primary-950/15" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-primary-950 via-transparent to-primary-950/30" />
           <div className="animate-float absolute -left-24 top-10 -z-10 h-96 w-96 rounded-full bg-primary-500/25 blur-3xl" />
           <div className="animate-float-slow absolute -right-20 bottom-0 -z-10 h-[28rem] w-[28rem] rounded-full bg-gold/20 blur-3xl" />
           <div
